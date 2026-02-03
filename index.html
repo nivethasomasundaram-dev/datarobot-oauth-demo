@@ -93,7 +93,7 @@
     <div class="container">
         <div class="logo">🤖</div>
         <h1>DataRobot OAuth Demo</h1>
-        <p class="subtitle">Secure authentication with Okta</p>
+        <p class="subtitle">Secure authentication with Okta + PKCE</p>
         
         <button class="login-button" onclick="loginWithOkta()">
             Login with Okta
@@ -101,39 +101,14 @@
         
         <div class="info">
             <strong>ℹ️ How it works:</strong><br>
-            Click the button above to authenticate with Okta. After successful login, you'll receive your DataRobot API token.
+            Click the button above to authenticate with Okta using PKCE (Proof Key for Code Exchange). After successful login, you'll receive your DataRobot API token.
         </div>
     </div>
 
     <script>
-        function loginWithOkta() {
-            // Your Okta configuration
-            const oktaDomain = 'agents-dell.oktapreview.com';
-            const clientId = '0oasm7gb2oAVsX8c81d7';
-            const redirectUri = 'https://nivethasomasundaram-dev.github.io/datarobot-oauth-demo/callback.html';
-            const scope = 'openid profile email';
-            const responseType = 'code';
-            
-            // Generate state for security (prevent CSRF)
-            const state = generateRandomString(32);
-            sessionStorage.setItem('oauth_state', state);
-            
-            // Build the authorization URL - CORRECTED FORMAT
-            const authUrl = `https://${oktaDomain}/oauth2/default/v1/authorize?` +
-                `client_id=${encodeURIComponent(clientId)}` +
-                `&response_type=${encodeURIComponent(responseType)}` +
-                `&scope=${encodeURIComponent(scope)}` +
-                `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-                `&state=${encodeURIComponent(state)}`;
-            
-            console.log('Redirecting to:', authUrl);
-            
-            // Redirect to Okta
-            window.location.href = authUrl;
-        }
-        
+        // PKCE Helper Functions
         function generateRandomString(length) {
-            const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
             let result = '';
             const randomValues = new Uint8Array(length);
             crypto.getRandomValues(randomValues);
@@ -143,6 +118,68 @@
             }
             
             return result;
+        }
+
+        async function sha256(plain) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(plain);
+            return await crypto.subtle.digest('SHA-256', data);
+        }
+
+        function base64urlencode(arrayBuffer) {
+            const bytes = new Uint8Array(arrayBuffer);
+            let str = '';
+            for (let i = 0; i < bytes.length; i++) {
+                str += String.fromCharCode(bytes[i]);
+            }
+            return btoa(str)
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=+$/, '');
+        }
+
+        async function generateCodeChallenge(codeVerifier) {
+            const hashed = await sha256(codeVerifier);
+            return base64urlencode(hashed);
+        }
+
+        async function loginWithOkta() {
+            // Your Okta configuration
+            const oktaDomain = 'agents-dell.oktapreview.com';
+            const clientId = '0oasm7gb2oAVsX8c81d7';
+            const redirectUri = 'https://nivethasomasundaram-dev.github.io/datarobot-oauth-demo/callback.html';
+            const scope = 'openid profile email';
+            const responseType = 'code';
+            
+            // Generate PKCE values
+            const codeVerifier = generateRandomString(128);
+            const codeChallenge = await generateCodeChallenge(codeVerifier);
+            
+            // Generate state for security (prevent CSRF)
+            const state = generateRandomString(32);
+            
+            // Store PKCE values in sessionStorage for the callback
+            sessionStorage.setItem('pkce_code_verifier', codeVerifier);
+            sessionStorage.setItem('oauth_state', state);
+            
+            console.log('PKCE Code Verifier:', codeVerifier);
+            console.log('PKCE Code Challenge:', codeChallenge);
+            console.log('State:', state);
+            
+            // Build the authorization URL with PKCE
+            const authUrl = `https://${oktaDomain}/oauth2/default/v1/authorize?` +
+                `client_id=${encodeURIComponent(clientId)}` +
+                `&response_type=${encodeURIComponent(responseType)}` +
+                `&scope=${encodeURIComponent(scope)}` +
+                `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+                `&state=${encodeURIComponent(state)}` +
+                `&code_challenge=${encodeURIComponent(codeChallenge)}` +
+                `&code_challenge_method=S256`;
+            
+            console.log('Redirecting to:', authUrl);
+            
+            // Redirect to Okta
+            window.location.href = authUrl;
         }
     </script>
 </body>
