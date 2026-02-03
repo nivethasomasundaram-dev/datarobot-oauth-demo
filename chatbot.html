@@ -335,8 +335,8 @@
     </div>
 
     <script>
-        // Configuration
-        const DATAROBOT_PROXY_URL = 'YOUR_API_GATEWAY_URL_HERE'; // UPDATE THIS!
+        // Configuration - UPDATED TO CALL DATAROBOT DIRECTLY
+        const DATAROBOT_URL = 'https://dr-app-charts-master-daily.eks.delivery.drdev.io';
         
         // Check authentication
         const accessToken = sessionStorage.getItem('access_token');
@@ -368,35 +368,32 @@
             } catch (error) {
                 console.error('Init error:', error);
                 document.getElementById('deploymentStatus').textContent = 
-                    'Error loading deployments. You can still chat!';
+                    'Error loading deployments: ' + error.message;
             }
         }
 
-        // Load deployments from DataRobot
+        // Load deployments from DataRobot - UPDATED TO CALL DIRECTLY
         async function loadDeployments() {
-            console.log('Loading deployments...');
+            console.log('Loading deployments from DataRobot...');
             
-            const response = await fetch(DATAROBOT_PROXY_URL, {
-                method: 'POST',
+            const response = await fetch(`${DATAROBOT_URL}/api/v2/deployments/`, {
+                method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    access_token: accessToken,
-                    datarobot_url: config.dataRobotUrl,
-                    endpoint: '/api/v2/deployments/',
-                    method: 'GET'
-                })
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                }
             });
 
             if (!response.ok) {
-                throw new Error('Failed to load deployments');
+                const errorText = await response.text();
+                console.error('Failed to load deployments:', response.status, errorText);
+                throw new Error(`Failed to load deployments: ${response.status}`);
             }
 
             const data = await response.json();
             deployments = data.data || [];
             
-            console.log(`Loaded ${deployments.length} deployments`);
+            console.log(`Loaded ${deployments.length} deployments`, deployments);
             
             // Populate selector
             deploymentSelector.innerHTML = '<option value="">Select Deployment...</option>';
@@ -496,7 +493,32 @@
                         • Make predictions (select a deployment first)<br>
                         • Get deployment info<br>
                         <br>
-                        Try: "list deployments" or "make a prediction"`);
+                        Try: "list deployments" or select a deployment above`);
+                } else if (message.toLowerCase().includes('account info')) {
+                    // Call DataRobot account info API
+                    try {
+                        const response = await fetch(`${DATAROBOT_URL}/api/v2/account/info/`, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${accessToken}`
+                            }
+                        });
+                        
+                        if (response.ok) {
+                            const accountData = await response.json();
+                            hideTypingIndicator();
+                            addMessage(`Account Info:<br>
+                                • User: ${accountData.username || 'N/A'}<br>
+                                • Email: ${accountData.email || 'N/A'}<br>
+                                • Organization: ${accountData.organizationName || 'N/A'}`);
+                        } else {
+                            throw new Error('Failed to get account info');
+                        }
+                    } catch (error) {
+                        hideTypingIndicator();
+                        addMessage('Error fetching account info: ' + error.message);
+                    }
                 } else {
                     // Default: Acknowledge message
                     hideTypingIndicator();
@@ -505,15 +527,15 @@
                         addMessage('Please select a deployment from the dropdown above to make predictions!');
                     } else {
                         addMessage(`I received your message: "${message}"<br><br>
-                            To make actual predictions, I would call:<br>
-                            POST ${config.dataRobotUrl}/api/v2/deployments/${selectedDeploymentId}/predictions<br><br>
-                            This will be implemented in the next step!`);
+                            Selected deployment: ${selectedDeploymentId}<br><br>
+                            To make predictions, I would call the DataRobot prediction API.<br>
+                            Try "account info" to test the API connection!`);
                     }
                 }
 
             } catch (error) {
                 hideTypingIndicator();
-                addMessage('Sorry, I encountered an error. Please try again.');
+                addMessage('Sorry, I encountered an error: ' + error.message);
                 console.error('Error:', error);
             } finally {
                 sendButton.disabled = false;
