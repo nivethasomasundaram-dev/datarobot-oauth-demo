@@ -56,26 +56,12 @@
             gap: 15px;
         }
         
-        .env-badge {
+        .user-badge {
             background: rgba(255, 255, 255, 0.2);
             padding: 6px 12px;
             border-radius: 6px;
             font-size: 12px;
             font-weight: 500;
-        }
-        
-        .deployment-selector {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-        }
-        
-        .deployment-selector option {
-            color: #333;
         }
         
         .logout-btn {
@@ -272,27 +258,6 @@
             color: #333;
             margin-bottom: 10px;
         }
-        
-        .prediction-result {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            border-radius: 8px;
-            padding: 12px;
-            margin-top: 10px;
-        }
-        
-        .prediction-result strong {
-            color: #856404;
-        }
-        
-        .error-message {
-            background: #fee;
-            border: 1px solid #fcc;
-            border-radius: 8px;
-            padding: 12px;
-            margin-top: 10px;
-            color: #c33;
-        }
     </style>
 </head>
 <body>
@@ -302,10 +267,7 @@
             <h1>DataRobot ChatBot</h1>
         </div>
         <div class="header-right">
-            <select class="deployment-selector" id="deploymentSelector">
-                <option value="">Select Deployment...</option>
-            </select>
-            <div class="env-badge" id="envBadge">Loading...</div>
+            <div class="user-badge" id="userBadge">Loading...</div>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
     </div>
@@ -314,8 +276,7 @@
         <div class="messages" id="messages">
             <div class="welcome-message">
                 <h2>👋 Welcome to DataRobot ChatBot!</h2>
-                <p>Connecting to your DataRobot environment...</p>
-                <p id="deploymentStatus">Loading account info...</p>
+                <p>Connecting to your DataRobot account...</p>
             </div>
         </div>
         
@@ -324,7 +285,7 @@
                 <input 
                     type="text" 
                     id="messageInput" 
-                    placeholder="Type your message or 'list deployments'..." 
+                    placeholder="Type your message..." 
                     autocomplete="off"
                 >
                 <button id="sendButton">
@@ -349,18 +310,10 @@
             window.location.href = 'index.html';
         }
 
-        // Display environment
-        document.getElementById('envBadge').textContent = config.name;
-
-        // State
-        let deployments = [];
-        let selectedDeploymentId = null;
-
         // Chat functionality
         const messagesDiv = document.getElementById('messages');
         const messageInput = document.getElementById('messageInput');
         const sendButton = document.getElementById('sendButton');
-        const deploymentSelector = document.getElementById('deploymentSelector');
 
         // Initialize
         async function init() {
@@ -368,8 +321,8 @@
                 await loadAccountInfo();
             } catch (error) {
                 console.error('Init error:', error);
-                document.getElementById('deploymentStatus').textContent = 
-                    'Error loading account info: ' + error.message;
+                document.getElementById('userBadge').textContent = 'Connection Error';
+                addMessage('Failed to connect to DataRobot. Please try logging in again.', false);
             }
         }
 
@@ -399,25 +352,13 @@
             
             console.log('Account info loaded successfully:', accountData);
             
-            document.getElementById('deploymentStatus').textContent = 
-                `✅ Connected! Logged in as: ${accountData.username || accountData.email || 'User'}`;
+            const displayName = accountData.username || accountData.email || 'DataRobot User';
+            document.getElementById('userBadge').textContent = displayName;
             
-            // Display account info in chat
-            addMessage(`Successfully connected to DataRobot!<br><br>
-                <strong>Account Details:</strong><br>
-                • Username: ${accountData.username || 'N/A'}<br>
-                • Email: ${accountData.email || 'N/A'}<br>
-                • Organization: ${accountData.organizationName || 'N/A'}`, false);
+            // Display welcome message
+            addMessage(`Welcome! You're successfully connected to DataRobot.<br><br>
+                I'm here to help you with questions or information. Feel free to ask me anything!`, false);
         }
-
-        // Deployment selection
-        deploymentSelector.addEventListener('change', function(e) {
-            selectedDeploymentId = e.target.value;
-            if (selectedDeploymentId) {
-                const deployment = deployments.find(d => d.id === selectedDeploymentId);
-                addMessage(`Selected deployment: ${deployment.label || deployment.id}`, false);
-            }
-        });
 
         // Message handling
         function addMessage(text, isUser = false) {
@@ -478,45 +419,24 @@
             // Show typing indicator
             showTypingIndicator();
 
-            try {
-                // Handle special commands
-                if (message.toLowerCase().includes('list deployment')) {
-                    hideTypingIndicator();
-                    if (deployments.length > 0) {
-                        const list = deployments.map(d => `• ${d.label || d.id}`).join('<br>');
-                        addMessage(`Here are your available deployments:<br><br>${list}`);
-                    } else {
-                        addMessage('No deployments found. Make sure you have access to DataRobot deployments.');
-                    }
-                } else if (message.toLowerCase().includes('help')) {
-                    hideTypingIndicator();
-                    addMessage(`I can help you with:<br>
-                        • View your account info<br>
-                        • Chat with me about DataRobot<br>
-                        <br>
-                        Your account info was loaded when you logged in!`);
-                } else {
-                    // Default: Acknowledge message
-                    hideTypingIndicator();
-                    
-                    if (!selectedDeploymentId) {
-                        addMessage('Please select a deployment from the dropdown above to make predictions!');
-                    } else {
-                        addMessage(`I received your message: "${message}"<br><br>
-                            Selected deployment: ${selectedDeploymentId}<br><br>
-                            To make predictions, I would call the DataRobot prediction API.<br>
-                            Try "account info" to test the API connection!`);
-                    }
-                }
-
-            } catch (error) {
+            // Simulate response (replace with actual API call if needed)
+            setTimeout(() => {
                 hideTypingIndicator();
-                addMessage('Sorry, I encountered an error: ' + error.message);
-                console.error('Error:', error);
-            } finally {
+                
+                // Simple responses
+                if (message.toLowerCase().includes('hello') || message.toLowerCase().includes('hi')) {
+                    addMessage('Hello! How can I assist you today?');
+                } else if (message.toLowerCase().includes('help')) {
+                    addMessage(`I'm here to help! You can ask me questions about DataRobot, your account, or anything else you'd like to know.`);
+                } else if (message.toLowerCase().includes('account')) {
+                    addMessage('Your account is successfully connected. You can access DataRobot features through this interface.');
+                } else {
+                    addMessage(`I received your message: "${message}"<br><br>I'm a general-purpose assistant connected to your DataRobot account. Feel free to ask me anything!`);
+                }
+                
                 sendButton.disabled = false;
                 messageInput.focus();
-            }
+            }, 1000);
         }
 
         // Event listeners
