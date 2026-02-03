@@ -115,6 +115,8 @@
             font-family: 'Courier New', monospace;
             font-size: 12px;
             color: #666;
+            max-height: 300px;
+            overflow-y: auto;
         }
         
         .copy-button {
@@ -144,122 +146,120 @@
     </div>
 
     <script>
-        console.log('Callback handler started');
+        console.log('=== Callback Handler Started ===');
         
         // Parse URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
         const state = urlParams.get('state');
         const error = urlParams.get('error');
+        const errorDescription = urlParams.get('error_description');
         
-        console.log('Code:', code ? 'present' : 'null');
-        console.log('State:', state ? 'present' : 'null');
-        console.log('Error:', error);
+        console.log('Authorization Code:', code ? 'Received' : 'Missing');
+        console.log('State:', state ? 'Received' : 'Missing');
+        console.log('Error:', error || 'None');
+        if (errorDescription) console.log('Error Description:', errorDescription);
 
-        // Get stored PKCE values
-        const storedCodeVerifier = sessionStorage.getItem('pkce_code_verifier');
+        // Get stored state
         const storedState = sessionStorage.getItem('oauth_state');
-        
-        console.log('Stored Code Verifier:', storedCodeVerifier ? 'present' : 'null');
-        console.log('Stored State:', storedState ? 'present' : 'null');
+        console.log('Stored State:', storedState ? 'Found' : 'Not found');
 
-        // Configuration
+        // Configuration - UPDATE THESE URLS
         const config = {
-            oktaDomain: 'agents-dell.oktapreview.com',
-            clientId: '0oasm7gb2oAVsX8c81d7',
-            redirectUri: 'https://nivethasomasundaram-dev.github.io/datarobot-oauth-demo/callback.html',
-            datarobotApiUrl: 'https://7eqxeo0o7.execute-api.us-east-1.amazonaws.com'
+            lambdaApiUrl: 'https://7eqxeo0d7.execute-api.us-east-1.amazonaws.com',
+            redirectUri: 'https://main.d1nmjhv80u87ew.amplifyapp.com/callback.html'
         };
 
         async function exchangeCodeForToken() {
             try {
-                // Check for OAuth error
+                console.log('=== Starting Token Exchange ===');
+                
+                // Check for OAuth error from Okta
                 if (error) {
-                    throw new Error(`OAuth error: ${error}`);
+                    throw new Error(`OAuth error: ${error}${errorDescription ? ' - ' + errorDescription : ''}`);
                 }
 
                 // Check for authorization code
                 if (!code) {
-                    throw new Error('No authorization code received');
+                    throw new Error('No authorization code received from Okta');
                 }
 
-                // Check for stored PKCE code verifier
-                if (!storedCodeVerifier) {
-                    throw new Error('PKCE code verifier not found. Please start login from the main page.');
+                // Validate state (optional but recommended for security)
+                if (storedState && state !== storedState) {
+                    throw new Error('State mismatch - possible CSRF attack');
                 }
 
-                console.log('Exchanging code for tokens with PKCE...');
+                console.log('Sending code to Lambda backend...');
+                console.log('Lambda URL:', config.lambdaApiUrl);
 
-                // Exchange authorization code for tokens using PKCE
-                const tokenResponse = await fetch(`https://${config.oktaDomain}/oauth2/default/v1/token`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: new URLSearchParams({
-                        grant_type: 'authorization_code',
-                        code: code,
-                        redirect_uri: config.redirectUri,
-                        client_id: config.clientId,
-                        code_verifier: storedCodeVerifier
-                    })
-                });
-
-                if (!tokenResponse.ok) {
-                    const errorData = await tokenResponse.json();
-                    throw new Error(`Token exchange failed: ${errorData.error_description || errorData.error}`);
-                }
-
-                const tokens = await tokenResponse.json();
-                console.log('Tokens received successfully');
-                console.log('Access token present:', tokens.access_token ? 'yes' : 'no');
-
-                // Clean up stored PKCE values
-                sessionStorage.removeItem('pkce_code_verifier');
-                sessionStorage.removeItem('oauth_state');
-
-                // Call DataRobot Lambda API to get API token
-                console.log('Calling DataRobot API...');
-                console.log('Lambda API URL:', config.datarobotApiUrl);
-                
-                const datarobotResponse = await fetch(config.datarobotApiUrl, {
+                // Call your Lambda function to exchange code for token
+                const response = await fetch(config.lambdaApiUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        access_token: tokens.access_token
+                        code: code,
+                        redirect_uri: config.redirectUri
                     })
                 });
 
-                console.log('DataRobot API response status:', datarobotResponse.status);
+                console.log('Lambda Response Status:', response.status);
+                console.log('Lambda Response OK:', response.ok);
 
-                if (!datarobotResponse.ok) {
-                    const errorText = await datarobotResponse.text();
-                    console.error('DataRobot API error:', errorText);
-                    throw new Error(`DataRobot API error: ${datarobotResponse.status} - ${errorText}`);
+                // Get response text first for debugging
+                const responseText = await response.text();
+                console.log('Lambda Response Text:', responseText);
+
+                if (!response.ok) {
+                    throw new Error(`Lambda API error: ${response.status} - ${responseText}`);
                 }
 
-                const datarobotData = await datarobotResponse.json();
-                console.log('DataRobot response received');
+                // Parse JSON response
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (e) {
+                    throw new Error(`Invalid JSON response from Lambda: ${responseText}`);
+                }
 
-                // Display success
-                document.getElementById('status').style.display = 'none';
-                document.getElementById('result').innerHTML = `
-                    <div class="success">
-                        <h2>✅ Authentication Successful!</h2>
-                        <p>Your DataRobot API token:</p>
-                        <div class="token-display" id="token">${datarobotData.api_token || 'Token not found in response'}</div>
-                        <button class="copy-button" onclick="copyToken()">Copy Token</button>
-                        <div class="debug">
-                            <strong>Debug Info:</strong><br>
-                            Response: ${JSON.stringify(datarobotData, null, 2)}
+                console.log('Lambda Response Data:', data);
+
+                // Clean up stored state
+                sessionStorage.removeItem('oauth_state');
+
+                // Check if we got an access token
+                if (data.access_token) {
+                    console.log('✅ Access token received successfully');
+                    
+                    // Display success
+                    document.getElementById('status').style.display = 'none';
+                    document.getElementById('result').innerHTML = `
+                        <div class="success">
+                            <h2>✅ Authentication Successful!</h2>
+                            <p>Your access token has been retrieved.</p>
+                            <div class="token-display" id="token">${data.access_token}</div>
+                            <button class="copy-button" onclick="copyToken()">Copy Token</button>
+                            ${data.id_token ? `
+                                <p style="margin-top: 20px;"><strong>ID Token:</strong></p>
+                                <div class="token-display">${data.id_token}</div>
+                            ` : ''}
+                            <div class="debug">
+                                <strong>Debug Info:</strong><br>
+                                ${JSON.stringify(data, null, 2)}
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                } else if (data.error) {
+                    throw new Error(data.error);
+                } else {
+                    throw new Error('No access token in response');
+                }
 
             } catch (err) {
-                console.error('Error:', err);
+                console.error('❌ Error:', err);
+                
+                // Display error
                 document.getElementById('status').style.display = 'none';
                 document.getElementById('result').innerHTML = `
                     <div class="error">
@@ -267,10 +267,13 @@
                         <p><strong>Error:</strong> ${err.message}</p>
                         <div class="debug">
                             <strong>Debug Info:</strong><br>
-                            Code present: ${code ? 'yes' : 'no'}<br>
-                            State present: ${state ? 'yes' : 'no'}<br>
-                            PKCE Verifier stored: ${storedCodeVerifier ? 'yes' : 'no'}<br>
-                            Error: ${error || 'none'}<br>
+                            Authorization Code: ${code ? 'Received' : 'Missing'}<br>
+                            State Parameter: ${state ? 'Received' : 'Missing'}<br>
+                            Stored State: ${storedState ? 'Found' : 'Not found'}<br>
+                            OAuth Error: ${error || 'None'}<br>
+                            Error Description: ${errorDescription || 'None'}<br>
+                            Lambda URL: ${config.lambdaApiUrl}<br>
+                            Redirect URI: ${config.redirectUri}<br>
                             Full URL: ${window.location.href}
                         </div>
                         <button class="copy-button" onclick="window.location.href='index.html'">Try Again</button>
@@ -283,10 +286,13 @@
             const tokenText = document.getElementById('token').textContent;
             navigator.clipboard.writeText(tokenText).then(() => {
                 alert('Token copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy token');
             });
         }
 
-        // Start the token exchange process
+        // Start the token exchange process automatically
         exchangeCodeForToken();
     </script>
 </body>
