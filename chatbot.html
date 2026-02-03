@@ -335,7 +335,8 @@
     </div>
 
     <script>
-        // Configuration - UPDATED TO CALL DATAROBOT DIRECTLY
+        // Configuration - USING LAMBDA PROXY
+        const PROXY_URL = 'https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api';
         const DATAROBOT_URL = 'https://dr-app-charts-master-daily.eks.delivery.drdev.io';
         
         // Check authentication
@@ -372,16 +373,20 @@
             }
         }
 
-        // Load account info from DataRobot - Simple GET test
+        // Load account info from DataRobot via Lambda proxy
         async function loadAccountInfo() {
-            console.log('Loading account info from DataRobot...');
+            console.log('Loading account info via Lambda proxy...');
             
-            const response = await fetch(`${DATAROBOT_URL}/api/v2/account/info/`, {
-                method: 'GET',
+            const response = await fetch(PROXY_URL, {
+                method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`
-                }
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    access_token: accessToken,
+                    datarobot_url: DATAROBOT_URL,
+                    endpoint: '/api/v2/account/info/'
+                })
             });
 
             if (!response.ok) {
