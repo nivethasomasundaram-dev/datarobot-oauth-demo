@@ -314,8 +314,8 @@
         <div class="messages" id="messages">
             <div class="welcome-message">
                 <h2>👋 Welcome to DataRobot ChatBot!</h2>
-                <p>I'm connected to your DataRobot environment and ready to help.</p>
-                <p id="deploymentStatus">Loading deployments...</p>
+                <p>Connecting to your DataRobot environment...</p>
+                <p id="deploymentStatus">Loading account info...</p>
             </div>
         </div>
         
@@ -364,19 +364,19 @@
         // Initialize
         async function init() {
             try {
-                await loadDeployments();
+                await loadAccountInfo();
             } catch (error) {
                 console.error('Init error:', error);
                 document.getElementById('deploymentStatus').textContent = 
-                    'Error loading deployments: ' + error.message;
+                    'Error loading account info: ' + error.message;
             }
         }
 
-        // Load deployments from DataRobot - UPDATED TO CALL DIRECTLY
-        async function loadDeployments() {
-            console.log('Loading deployments from DataRobot...');
+        // Load account info from DataRobot - Simple GET test
+        async function loadAccountInfo() {
+            console.log('Loading account info from DataRobot...');
             
-            const response = await fetch(`${DATAROBOT_URL}/api/v2/deployments/`, {
+            const response = await fetch(`${DATAROBOT_URL}/api/v2/account/info/`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -386,26 +386,23 @@
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('Failed to load deployments:', response.status, errorText);
-                throw new Error(`Failed to load deployments: ${response.status}`);
+                console.error('Failed to load account info:', response.status, errorText);
+                throw new Error(`Failed to load account info: ${response.status}`);
             }
 
-            const data = await response.json();
-            deployments = data.data || [];
+            const accountData = await response.json();
             
-            console.log(`Loaded ${deployments.length} deployments`, deployments);
-            
-            // Populate selector
-            deploymentSelector.innerHTML = '<option value="">Select Deployment...</option>';
-            deployments.forEach(dep => {
-                const option = document.createElement('option');
-                option.value = dep.id;
-                option.textContent = dep.label || dep.id;
-                deploymentSelector.appendChild(option);
-            });
+            console.log('Account info loaded successfully:', accountData);
             
             document.getElementById('deploymentStatus').textContent = 
-                `Found ${deployments.length} deployments. Select one above to get started!`;
+                `✅ Connected! Logged in as: ${accountData.username || accountData.email || 'User'}`;
+            
+            // Display account info in chat
+            addMessage(`Successfully connected to DataRobot!<br><br>
+                <strong>Account Details:</strong><br>
+                • Username: ${accountData.username || 'N/A'}<br>
+                • Email: ${accountData.email || 'N/A'}<br>
+                • Organization: ${accountData.organizationName || 'N/A'}`, false);
         }
 
         // Deployment selection
@@ -489,36 +486,10 @@
                 } else if (message.toLowerCase().includes('help')) {
                     hideTypingIndicator();
                     addMessage(`I can help you with:<br>
-                        • List deployments<br>
-                        • Make predictions (select a deployment first)<br>
-                        • Get deployment info<br>
+                        • View your account info<br>
+                        • Chat with me about DataRobot<br>
                         <br>
-                        Try: "list deployments" or select a deployment above`);
-                } else if (message.toLowerCase().includes('account info')) {
-                    // Call DataRobot account info API
-                    try {
-                        const response = await fetch(`${DATAROBOT_URL}/api/v2/account/info/`, {
-                            method: 'GET',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${accessToken}`
-                            }
-                        });
-                        
-                        if (response.ok) {
-                            const accountData = await response.json();
-                            hideTypingIndicator();
-                            addMessage(`Account Info:<br>
-                                • User: ${accountData.username || 'N/A'}<br>
-                                • Email: ${accountData.email || 'N/A'}<br>
-                                • Organization: ${accountData.organizationName || 'N/A'}`);
-                        } else {
-                            throw new Error('Failed to get account info');
-                        }
-                    } catch (error) {
-                        hideTypingIndicator();
-                        addMessage('Error fetching account info: ' + error.message);
-                    }
+                        Your account info was loaded when you logged in!`);
                 } else {
                     // Default: Acknowledge message
                     hideTypingIndicator();
