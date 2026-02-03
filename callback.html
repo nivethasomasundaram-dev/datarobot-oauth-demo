@@ -156,11 +156,17 @@
         console.log('State:', state ? 'present' : 'null');
         console.log('Error:', error);
 
+        // Get stored PKCE values
+        const storedCodeVerifier = sessionStorage.getItem('pkce_code_verifier');
+        const storedState = sessionStorage.getItem('oauth_state');
+        
+        console.log('Stored Code Verifier:', storedCodeVerifier ? 'present' : 'null');
+        console.log('Stored State:', storedState ? 'present' : 'null');
+
         // Configuration
         const config = {
             oktaDomain: 'agents-dell.oktapreview.com',
             clientId: '0oasm7gb2oAVsX8c81d7',
-            clientSecret: 'y_ydFcfnTTMW_CfYmwdhvwQoP25DZr8TsGKhx7jNsqHQx4x2cmNaZ9fMfhHRs8xL',
             redirectUri: 'https://nivethasomasundaram-dev.github.io/datarobot-oauth-demo/callback.html',
             datarobotApiUrl: 'https://7eqxeo0o7.execute-api.us-east-1.amazonaws.com'
         };
@@ -177,9 +183,14 @@
                     throw new Error('No authorization code received');
                 }
 
-                console.log('Exchanging code for tokens...');
+                // Check for stored PKCE code verifier
+                if (!storedCodeVerifier) {
+                    throw new Error('PKCE code verifier not found. Please start login from the main page.');
+                }
 
-                // Exchange authorization code for tokens
+                console.log('Exchanging code for tokens with PKCE...');
+
+                // Exchange authorization code for tokens using PKCE
                 const tokenResponse = await fetch(`https://${config.oktaDomain}/oauth2/default/v1/token`, {
                     method: 'POST',
                     headers: {
@@ -190,7 +201,7 @@
                         code: code,
                         redirect_uri: config.redirectUri,
                         client_id: config.clientId,
-                        client_secret: config.clientSecret
+                        code_verifier: storedCodeVerifier
                     })
                 });
 
@@ -200,7 +211,12 @@
                 }
 
                 const tokens = await tokenResponse.json();
-                console.log('Tokens received:', tokens.access_token ? 'yes' : 'no');
+                console.log('Tokens received successfully');
+                console.log('Access token present:', tokens.access_token ? 'yes' : 'no');
+
+                // Clean up stored PKCE values
+                sessionStorage.removeItem('pkce_code_verifier');
+                sessionStorage.removeItem('oauth_state');
 
                 // Call DataRobot Lambda API to get API token
                 console.log('Calling DataRobot API...');
@@ -225,7 +241,7 @@
                 }
 
                 const datarobotData = await datarobotResponse.json();
-                console.log('DataRobot response:', datarobotData);
+                console.log('DataRobot response received');
 
                 // Display success
                 document.getElementById('status').style.display = 'none';
@@ -253,6 +269,7 @@
                             <strong>Debug Info:</strong><br>
                             Code present: ${code ? 'yes' : 'no'}<br>
                             State present: ${state ? 'yes' : 'no'}<br>
+                            PKCE Verifier stored: ${storedCodeVerifier ? 'yes' : 'no'}<br>
                             Error: ${error || 'none'}<br>
                             Full URL: ${window.location.href}
                         </div>
