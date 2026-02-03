@@ -164,9 +164,9 @@
         const storedState = sessionStorage.getItem('oauth_state');
         console.log('Stored State:', storedState ? 'Found' : 'Not found');
 
-        // Configuration - UPDATE THESE URLS
+        // Configuration - CORRECT URL: 7eqxxeo0d7 (note the double 'x')
         const config = {
-            lambdaApiUrl: 'https://7eqxeo0d7.execute-api.us-east-1.amazonaws.com',
+            lambdaApiUrl: 'https://7eqxxeo0d7.execute-api.us-east-1.amazonaws.com',
             redirectUri: 'https://main.d1nmjhv80u87ew.amplifyapp.com/callback.html'
         };
 
@@ -191,6 +191,10 @@
 
                 console.log('Sending code to Lambda backend...');
                 console.log('Lambda URL:', config.lambdaApiUrl);
+                console.log('Request payload:', JSON.stringify({
+                    code: code,
+                    redirect_uri: config.redirectUri
+                }));
 
                 // Call your Lambda function to exchange code for token
                 const response = await fetch(config.lambdaApiUrl, {
@@ -202,6 +206,9 @@
                         code: code,
                         redirect_uri: config.redirectUri
                     })
+                }).catch(fetchError => {
+                    console.error('Fetch failed:', fetchError);
+                    throw new Error(`Network request failed: ${fetchError.message}. Check CORS or API Gateway URL.`);
                 });
 
                 console.log('Lambda Response Status:', response.status);
