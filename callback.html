@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Processing Login - DataRobot OAuth</title>
+    <title>Processing Login - DataRobot ChatBot</title>
     <style>
         * {
             margin: 0;
@@ -76,12 +76,6 @@
             margin-bottom: 10px;
         }
         
-        .error p {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
-        
         .success {
             background: #efe;
             border: 2px solid #cfc;
@@ -96,41 +90,19 @@
             margin-bottom: 10px;
         }
         
-        .token-display {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 15px;
-            word-break: break-all;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            color: #333;
-        }
-        
-        .debug {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 15px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            color: #666;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        
-        .copy-button {
+        .button {
             background: #667eea;
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 12px 24px;
+            border-radius: 8px;
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 15px;
             font-size: 14px;
+            font-weight: 600;
         }
         
-        .copy-button:hover {
+        .button:hover {
             background: #5568d3;
         }
     </style>
@@ -140,7 +112,7 @@
         <div class="status" id="status">
             <div class="spinner"></div>
             <h1>Processing login...</h1>
-            <p class="message">Please wait while we complete your authentication.</p>
+            <p class="message">Exchanging authorization code for access token.</p>
         </div>
         <div id="result"></div>
     </div>
@@ -158,107 +130,113 @@
         console.log('Authorization Code:', code ? 'Received' : 'Missing');
         console.log('State:', state ? 'Received' : 'Missing');
         console.log('Error:', error || 'None');
-        if (errorDescription) console.log('Error Description:', errorDescription);
 
-        // Get stored state
+        // Get stored configuration and state
         const storedState = sessionStorage.getItem('oauth_state');
-        console.log('Stored State:', storedState ? 'Found' : 'Not found');
+        const configStr = sessionStorage.getItem('chatbot_config');
+        const config = configStr ? JSON.parse(configStr) : null;
 
-        // Configuration - CORRECT URL: 7eqxxeo0d7 (note the double 'x')
-        const config = {
-            lambdaApiUrl: 'https://7eqxxeo0d7.execute-api.us-east-1.amazonaws.com',
-            redirectUri: 'https://main.d1nmjhv80u87ew.amplifyapp.com/callback.html'
-        };
+        console.log('Stored State:', storedState ? 'Found' : 'Not found');
+        console.log('Stored Config:', config ? 'Found' : 'Not found');
 
         async function exchangeCodeForToken() {
             try {
                 console.log('=== Starting Token Exchange ===');
                 
-                // Check for OAuth error from Okta
+                // Check for OAuth error
                 if (error) {
                     throw new Error(`OAuth error: ${error}${errorDescription ? ' - ' + errorDescription : ''}`);
                 }
 
                 // Check for authorization code
                 if (!code) {
-                    throw new Error('No authorization code received from Okta');
+                    throw new Error('No authorization code received');
                 }
 
-                // Validate state (optional but recommended for security)
+                // Check for configuration
+                if (!config) {
+                    throw new Error('No configuration found. Please start from the login page.');
+                }
+
+                // Validate state
                 if (storedState && state !== storedState) {
                     throw new Error('State mismatch - possible CSRF attack');
                 }
 
-                console.log('Sending code to Lambda backend...');
-                console.log('Lambda URL:', config.lambdaApiUrl);
-                console.log('Request payload:', JSON.stringify({
-                    code: code,
-                    redirect_uri: config.redirectUri
-                }));
+                console.log('Calling Lambda backend for token exchange...');
+                console.log('Auth Provider:', config.authProvider);
 
-                // Call your Lambda function to exchange code for token
-                const response = await fetch(config.lambdaApiUrl, {
+                // Call Lambda function - it will handle both Okta and EntraID
+                const lambdaUrl = 'https://7eqxxeo0d7.execute-api.us-east-1.amazonaws.com';
+                
+                const response = await fetch(lambdaUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
                         code: code,
-                        redirect_uri: config.redirectUri
+                        redirect_uri: config.redirectUri,
+                        auth_provider: config.authProvider,
+                        auth_domain: config.authDomain,
+                        tenant_id: config.tenantId,
+                        client_id: config.clientId
                     })
                 }).catch(fetchError => {
                     console.error('Fetch failed:', fetchError);
-                    throw new Error(`Network request failed: ${fetchError.message}. Check CORS or API Gateway URL.`);
+                    throw new Error(`Network request failed: ${fetchError.message}`);
                 });
 
                 console.log('Lambda Response Status:', response.status);
-                console.log('Lambda Response OK:', response.ok);
 
-                // Get response text first for debugging
                 const responseText = await response.text();
-                console.log('Lambda Response Text:', responseText);
+                console.log('Lambda Response:', responseText);
 
                 if (!response.ok) {
-                    throw new Error(`Lambda API error: ${response.status} - ${responseText}`);
+                    throw new Error(`Backend error: ${response.status} - ${responseText}`);
                 }
 
-                // Parse JSON response
                 let data;
                 try {
                     data = JSON.parse(responseText);
                 } catch (e) {
-                    throw new Error(`Invalid JSON response from Lambda: ${responseText}`);
+                    throw new Error(`Invalid JSON response: ${responseText}`);
                 }
 
-                console.log('Lambda Response Data:', data);
-
-                // Clean up stored state
-                sessionStorage.removeItem('oauth_state');
-
-                // Check if we got an access token
                 if (data.access_token) {
-                    console.log('✅ Access token received successfully');
+                    console.log('✅ Access token received');
                     
-                    // Display success
+                    // Store tokens and config
+                    sessionStorage.setItem('access_token', data.access_token);
+                    if (data.id_token) {
+                        sessionStorage.setItem('id_token', data.id_token);
+                    }
+                    if (data.refresh_token) {
+                        sessionStorage.setItem('refresh_token', data.refresh_token);
+                    }
+                    
+                    // Calculate expiry
+                    const expiresIn = data.expires_in || 3600;
+                    const expiresAt = Date.now() + (expiresIn * 1000);
+                    sessionStorage.setItem('token_expires_at', expiresAt);
+                    
+                    // Clean up OAuth state
+                    sessionStorage.removeItem('oauth_state');
+                    
+                    // Show success and redirect to chatbot
                     document.getElementById('status').style.display = 'none';
                     document.getElementById('result').innerHTML = `
                         <div class="success">
                             <h2>✅ Authentication Successful!</h2>
-                            <p>Your access token has been retrieved.</p>
-                            <div class="token-display" id="token">${data.access_token}</div>
-                            <button class="copy-button" onclick="copyToken()">Copy Token</button>
-                            ${data.id_token ? `
-                                <p style="margin-top: 20px;"><strong>ID Token:</strong></p>
-                                <div class="token-display">${data.id_token}</div>
-                            ` : ''}
-                            <div class="debug">
-                                <strong>Debug Info:</strong><br>
-                                ${JSON.stringify(data, null, 2)}
-                            </div>
+                            <p>Redirecting to ChatBot...</p>
                         </div>
                     `;
-                } else if (data.error) {
-                    throw new Error(data.error);
+                    
+                    // Redirect to chatbot interface
+                    setTimeout(() => {
+                        window.location.href = 'chatbot.html';
+                    }, 1500);
+                    
                 } else {
                     throw new Error('No access token in response');
                 }
@@ -266,40 +244,18 @@
             } catch (err) {
                 console.error('❌ Error:', err);
                 
-                // Display error
                 document.getElementById('status').style.display = 'none';
                 document.getElementById('result').innerHTML = `
                     <div class="error">
                         <h2>❌ Authentication Failed</h2>
                         <p><strong>Error:</strong> ${err.message}</p>
-                        <div class="debug">
-                            <strong>Debug Info:</strong><br>
-                            Authorization Code: ${code ? 'Received' : 'Missing'}<br>
-                            State Parameter: ${state ? 'Received' : 'Missing'}<br>
-                            Stored State: ${storedState ? 'Found' : 'Not found'}<br>
-                            OAuth Error: ${error || 'None'}<br>
-                            Error Description: ${errorDescription || 'None'}<br>
-                            Lambda URL: ${config.lambdaApiUrl}<br>
-                            Redirect URI: ${config.redirectUri}<br>
-                            Full URL: ${window.location.href}
-                        </div>
-                        <button class="copy-button" onclick="window.location.href='index.html'">Try Again</button>
+                        <button class="button" onclick="window.location.href='index.html'">Try Again</button>
                     </div>
                 `;
             }
         }
 
-        function copyToken() {
-            const tokenText = document.getElementById('token').textContent;
-            navigator.clipboard.writeText(tokenText).then(() => {
-                alert('Token copied to clipboard!');
-            }).catch(err => {
-                console.error('Failed to copy:', err);
-                alert('Failed to copy token');
-            });
-        }
-
-        // Start the token exchange process automatically
+        // Start the token exchange
         exchangeCodeForToken();
     </script>
 </body>
