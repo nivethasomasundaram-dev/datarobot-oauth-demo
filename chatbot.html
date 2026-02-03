@@ -64,6 +64,20 @@
             font-weight: 500;
         }
         
+        .deployment-selector {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .deployment-selector option {
+            color: #333;
+        }
+        
         .logout-btn {
             background: rgba(255, 255, 255, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.3);
@@ -102,6 +116,18 @@
             display: flex;
             gap: 12px;
             max-width: 80%;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         .message.user {
@@ -227,14 +253,13 @@
             transition: transform 0.2s;
         }
         
-        #sendButton:hover {
+        #sendButton:hover:not(:disabled) {
             transform: scale(1.05);
         }
         
         #sendButton:disabled {
             opacity: 0.6;
             cursor: not-allowed;
-            transform: none;
         }
         
         .welcome-message {
@@ -247,6 +272,27 @@
             color: #333;
             margin-bottom: 10px;
         }
+        
+        .prediction-result {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+        
+        .prediction-result strong {
+            color: #856404;
+        }
+        
+        .error-message {
+            background: #fee;
+            border: 1px solid #fcc;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+            color: #c33;
+        }
     </style>
 </head>
 <body>
@@ -256,6 +302,9 @@
             <h1>DataRobot ChatBot</h1>
         </div>
         <div class="header-right">
+            <select class="deployment-selector" id="deploymentSelector">
+                <option value="">Select Deployment...</option>
+            </select>
             <div class="env-badge" id="envBadge">Loading...</div>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
@@ -265,13 +314,8 @@
         <div class="messages" id="messages">
             <div class="welcome-message">
                 <h2>👋 Welcome to DataRobot ChatBot!</h2>
-                <p>I'm here to help you with predictions, insights, and data analysis.</p>
-                <p>Try asking me something like:</p>
-                <p style="font-style: italic; margin-top: 10px;">
-                    "What predictions can you make?"<br>
-                    "Analyze this customer data..."<br>
-                    "Show me model insights"
-                </p>
+                <p>I'm connected to your DataRobot environment and ready to help.</p>
+                <p id="deploymentStatus">Loading deployments...</p>
             </div>
         </div>
         
@@ -280,7 +324,7 @@
                 <input 
                     type="text" 
                     id="messageInput" 
-                    placeholder="Type your message..." 
+                    placeholder="Type your message or 'list deployments'..." 
                     autocomplete="off"
                 >
                 <button id="sendButton">
@@ -291,6 +335,9 @@
     </div>
 
     <script>
+        // Configuration
+        const DATAROBOT_PROXY_URL = 'YOUR_API_GATEWAY_URL_HERE'; // UPDATE THIS!
+        
         // Check authentication
         const accessToken = sessionStorage.getItem('access_token');
         const configStr = sessionStorage.getItem('chatbot_config');
@@ -304,10 +351,74 @@
         // Display environment
         document.getElementById('envBadge').textContent = config.name;
 
+        // State
+        let deployments = [];
+        let selectedDeploymentId = null;
+
         // Chat functionality
         const messagesDiv = document.getElementById('messages');
         const messageInput = document.getElementById('messageInput');
         const sendButton = document.getElementById('sendButton');
+        const deploymentSelector = document.getElementById('deploymentSelector');
+
+        // Initialize
+        async function init() {
+            try {
+                await loadDeployments();
+            } catch (error) {
+                console.error('Init error:', error);
+                document.getElementById('deploymentStatus').textContent = 
+                    'Error loading deployments. You can still chat!';
+            }
+        }
+
+        // Load deployments from DataRobot
+        async function loadDeployments() {
+            console.log('Loading deployments...');
+            
+            const response = await fetch(DATAROBOT_PROXY_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    access_token: accessToken,
+                    datarobot_url: config.dataRobotUrl,
+                    endpoint: '/api/v2/deployments/',
+                    method: 'GET'
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to load deployments');
+            }
+
+            const data = await response.json();
+            deployments = data.data || [];
+            
+            console.log(`Loaded ${deployments.length} deployments`);
+            
+            // Populate selector
+            deploymentSelector.innerHTML = '<option value="">Select Deployment...</option>';
+            deployments.forEach(dep => {
+                const option = document.createElement('option');
+                option.value = dep.id;
+                option.textContent = dep.label || dep.id;
+                deploymentSelector.appendChild(option);
+            });
+            
+            document.getElementById('deploymentStatus').textContent = 
+                `Found ${deployments.length} deployments. Select one above to get started!`;
+        }
+
+        // Deployment selection
+        deploymentSelector.addEventListener('change', function(e) {
+            selectedDeploymentId = e.target.value;
+            if (selectedDeploymentId) {
+                const deployment = deployments.find(d => d.id === selectedDeploymentId);
+                addMessage(`Selected deployment: ${deployment.label || deployment.id}`, false);
+            }
+        });
 
         // Message handling
         function addMessage(text, isUser = false) {
@@ -369,25 +480,40 @@
             showTypingIndicator();
 
             try {
-                // TODO: Replace with actual DataRobot API call
-                // For now, simulate a response
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                
-                hideTypingIndicator();
-                
-                // Demo response
-                const responses = [
-                    `I received your message: "${message}". In a production environment, I would process this through the DataRobot deployment and return predictions or insights.`,
-                    `Based on your query, I would typically call the DataRobot API at ${config.dataRobotUrl}/api/v2/deployments/[DEPLOYMENT_ID]/predictions`,
-                    `I'm connected to ${config.name} and ready to help with predictions and analysis.`
-                ];
-                
-                const response = responses[Math.floor(Math.random() * responses.length)];
-                addMessage(response);
+                // Handle special commands
+                if (message.toLowerCase().includes('list deployment')) {
+                    hideTypingIndicator();
+                    if (deployments.length > 0) {
+                        const list = deployments.map(d => `• ${d.label || d.id}`).join('<br>');
+                        addMessage(`Here are your available deployments:<br><br>${list}`);
+                    } else {
+                        addMessage('No deployments found. Make sure you have access to DataRobot deployments.');
+                    }
+                } else if (message.toLowerCase().includes('help')) {
+                    hideTypingIndicator();
+                    addMessage(`I can help you with:<br>
+                        • List deployments<br>
+                        • Make predictions (select a deployment first)<br>
+                        • Get deployment info<br>
+                        <br>
+                        Try: "list deployments" or "make a prediction"`);
+                } else {
+                    // Default: Acknowledge message
+                    hideTypingIndicator();
+                    
+                    if (!selectedDeploymentId) {
+                        addMessage('Please select a deployment from the dropdown above to make predictions!');
+                    } else {
+                        addMessage(`I received your message: "${message}"<br><br>
+                            To make actual predictions, I would call:<br>
+                            POST ${config.dataRobotUrl}/api/v2/deployments/${selectedDeploymentId}/predictions<br><br>
+                            This will be implemented in the next step!`);
+                    }
+                }
 
             } catch (error) {
                 hideTypingIndicator();
-                addMessage('Sorry, I encountered an error. Please try again.', false);
+                addMessage('Sorry, I encountered an error. Please try again.');
                 console.error('Error:', error);
             } finally {
                 sendButton.disabled = false;
@@ -412,6 +538,9 @@
 
         // Focus input on load
         messageInput.focus();
+        
+        // Initialize
+        init();
     </script>
 </body>
 </html>
