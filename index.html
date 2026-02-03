@@ -12,479 +12,137 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             padding: 20px;
         }
         
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .header {
             background: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 60px 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
         }
         
-        .header h1 {
+        h1 {
             color: #333;
-            margin-bottom: 5px;
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: 700;
         }
         
-        .header p {
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 40px;
+        }
+        
+        .login-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 48px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .login-button:active {
+            transform: translateY(0);
+        }
+        
+        .info {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            font-size: 14px;
             color: #666;
         }
         
-        .settings {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .settings h3 {
-            margin-bottom: 15px;
-            color: #333;
-        }
-        
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-            color: #555;
-        }
-        
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        
-        .button-group {
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
             display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        
-        button {
-            background: #007bff;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
             color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        
-        button:hover {
-            background: #0056b3;
-        }
-        
-        button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        
-        button.logout {
-            background: #dc3545;
-        }
-        
-        button.logout:hover {
-            background: #c82333;
-        }
-        
-        .token-display {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .token-display h3 {
-            margin-bottom: 15px;
-            color: #333;
-        }
-        
-        .token-box {
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 10px;
-            word-break: break-all;
-            font-family: 'Courier New', monospace;
-            font-size: 11px;
-            max-height: 100px;
-            overflow-y: auto;
-        }
-        
-        .chat-container {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .chat-container h3 {
-            margin-bottom: 15px;
-            color: #333;
-        }
-        
-        .chat-messages {
-            height: 400px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 15px;
-            margin-bottom: 15px;
-            background: #fafafa;
-        }
-        
-        .message {
-            margin-bottom: 15px;
-            padding: 10px;
-            border-radius: 4px;
-        }
-        
-        .message.user {
-            background: #e3f2fd;
-            text-align: right;
-        }
-        
-        .message.assistant {
-            background: #f5f5f5;
-        }
-        
-        .chat-input {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .chat-input input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        
-        .status {
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 15px;
-            font-size: 14px;
-        }
-        
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .status.info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🚀 DataRobot OAuth Demo Application</h1>
-            <p>Demonstrating OAuth/JWT authentication with DataRobot inference endpoints</p>
-        </div>
-
-        <div id="statusMessage"></div>
-
-        <div class="settings">
-            <h3>⚙️ Configuration Settings</h3>
-            
-            <div class="form-group">
-                <label>Identity Provider</label>
-                <select id="idpSelect">
-                    <option value="okta">Okta (Agents Dell)</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>DataRobot Base URL</label>
-                <input type="text" id="baseUrl" placeholder="https://app.datarobot.com" 
-                       value="https://staging.datarobot.com">
-            </div>
-
-            <div class="form-group">
-                <label>Deployment ID</label>
-                <input type="text" id="deploymentId" placeholder="Enter deployment ID">
-            </div>
-
-            <div class="button-group">
-                <button onclick="saveSettings()">💾 Save Settings</button>
-                <button onclick="initiateLogin()" id="loginBtn">🔐 Login with Okta</button>
-                <button onclick="logout()" id="logoutBtn" class="logout" style="display: none;">🚪 Logout</button>
-            </div>
-        </div>
-
-        <div class="token-display" id="tokenDisplay" style="display: none;">
-            <h3>🔑 Stored Tokens (Demo View)</h3>
-            <div>
-                <strong>Access Token:</strong>
-                <div class="token-box" id="accessTokenDisplay"></div>
-            </div>
-            <div>
-                <strong>ID Token:</strong>
-                <div class="token-box" id="idTokenDisplay"></div>
-            </div>
-        </div>
-
-        <div class="chat-container">
-            <h3>💬 Chat Interface</h3>
-            <div class="chat-messages" id="chatMessages">
-                <div class="message assistant">
-                    Welcome! Please login with Okta and configure your settings to start testing DataRobot inference endpoints.
-                </div>
-            </div>
-            <div class="chat-input">
-                <input type="text" id="messageInput" placeholder="Type your message..." 
-                       disabled onkeypress="if(event.key==='Enter') sendMessage()">
-                <button onclick="sendMessage()" id="sendBtn" disabled>Send</button>
-            </div>
+        <div class="logo">🤖</div>
+        <h1>DataRobot OAuth Demo</h1>
+        <p class="subtitle">Secure authentication with Okta</p>
+        
+        <button class="login-button" onclick="loginWithOkta()">
+            Login with Okta
+        </button>
+        
+        <div class="info">
+            <strong>ℹ️ How it works:</strong><br>
+            Click the button above to authenticate with Okta. After successful login, you'll receive your DataRobot API token.
         </div>
     </div>
 
     <script>
-        // Configuration with YOUR actual Okta values
-        const CONFIG = {
-            oktaClientId: '0oasm7gb2oAVsX8c81d7',
-            oktaDomain: 'https://agents-dell.oktapreview.com',
-            oktaAuthServer: 'default',
-            lambdaApiUrl: 'https://7eqxeo0d7.execute-api.us-east-1.amazonaws.com',
-            redirectUri: window.location.origin + '/callback.html'
-        };
-
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('App initialized');
-            console.log('Config:', CONFIG);
-            loadSettings();
-            checkLoginStatus();
-            updateUI();
-        });
-
-        // Save settings to localStorage
-        function saveSettings() {
-            const baseUrl = document.getElementById('baseUrl').value.trim();
-            const deploymentId = document.getElementById('deploymentId').value.trim();
+        function loginWithOkta() {
+            // Your Okta configuration
+            const oktaDomain = 'agents-dell.oktapreview.com';
+            const clientId = '0oasm7gb2oAVsX8c81d7';
+            const redirectUri = 'https://nivethasomasundaram-dev.github.io/datarobot-oauth-demo/callback.html';
+            const scope = 'openid profile email';
+            const responseType = 'code';
             
-            if (!baseUrl) {
-                showStatus('Please enter a Base URL', 'error');
-                return;
+            // Generate state for security (prevent CSRF)
+            const state = generateRandomString(32);
+            sessionStorage.setItem('oauth_state', state);
+            
+            // Build the authorization URL - CORRECTED FORMAT
+            const authUrl = `https://${oktaDomain}/oauth2/default/v1/authorize?` +
+                `client_id=${encodeURIComponent(clientId)}` +
+                `&response_type=${encodeURIComponent(responseType)}` +
+                `&scope=${encodeURIComponent(scope)}` +
+                `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+                `&state=${encodeURIComponent(state)}`;
+            
+            console.log('Redirecting to:', authUrl);
+            
+            // Redirect to Okta
+            window.location.href = authUrl;
+        }
+        
+        function generateRandomString(length) {
+            const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            const randomValues = new Uint8Array(length);
+            crypto.getRandomValues(randomValues);
+            
+            for (let i = 0; i < length; i++) {
+                result += charset[randomValues[i] % charset.length];
             }
             
-            localStorage.setItem('dr_base_url', baseUrl);
-            localStorage.setItem('dr_deployment_id', deploymentId);
-            
-            showStatus('Settings saved successfully! ✓', 'success');
-        }
-
-        // Load settings from localStorage
-        function loadSettings() {
-            const baseUrl = localStorage.getItem('dr_base_url');
-            const deploymentId = localStorage.getItem('dr_deployment_id');
-            
-            if (baseUrl) document.getElementById('baseUrl').value = baseUrl;
-            if (deploymentId) document.getElementById('deploymentId').value = deploymentId;
-        }
-
-        // Initiate OAuth login flow
-        function initiateLogin() {
-            console.log('Initiating login...');
-            const authUrl = `${CONFIG.oktaDomain}/oauth2/${CONFIG.oktaAuthServer}/v1/authorize`;
-            
-            const state = generateRandomString();
-            localStorage.setItem('oauth_state', state);
-            
-            const params = new URLSearchParams({
-                client_id: CONFIG.oktaClientId,
-                response_type: 'code',
-                scope: 'openid profile email',
-                redirect_uri: CONFIG.redirectUri,
-                state: state
-            });
-            
-            console.log('Redirecting to:', `${authUrl}?${params.toString()}`);
-            window.location.href = `${authUrl}?${params.toString()}`;
-        }
-
-        // Check if user is logged in
-        function checkLoginStatus() {
-            const accessToken = localStorage.getItem('access_token');
-            const idToken = localStorage.getItem('id_token');
-            
-            if (accessToken && idToken) {
-                console.log('User is logged in');
-                displayTokens();
-                return true;
-            }
-            console.log('User is not logged in');
-            return false;
-        }
-
-        // Display stored tokens
-        function displayTokens() {
-            const accessToken = localStorage.getItem('access_token');
-            const idToken = localStorage.getItem('id_token');
-            
-            if (accessToken && idToken) {
-                document.getElementById('tokenDisplay').style.display = 'block';
-                document.getElementById('accessTokenDisplay').textContent = accessToken;
-                document.getElementById('idTokenDisplay').textContent = idToken;
-            }
-        }
-
-        // Update UI based on login status
-        function updateUI() {
-            const isLoggedIn = checkLoginStatus();
-            
-            document.getElementById('messageInput').disabled = !isLoggedIn;
-            document.getElementById('sendBtn').disabled = !isLoggedIn;
-            document.getElementById('loginBtn').style.display = isLoggedIn ? 'none' : 'inline-block';
-            document.getElementById('logoutBtn').style.display = isLoggedIn ? 'inline-block' : 'none';
-        }
-
-        // Logout function
-        function logout() {
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('id_token');
-            localStorage.removeItem('oauth_state');
-            document.getElementById('tokenDisplay').style.display = 'none';
-            document.getElementById('chatMessages').innerHTML = '<div class="message assistant">You have been logged out. Please login again to continue.</div>';
-            updateUI();
-            showStatus('Logged out successfully', 'info');
-        }
-
-        // Send message to DataRobot
-        async function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const message = input.value.trim();
-            
-            if (!message) return;
-            
-            // Add user message to chat
-            addMessageToChat(message, 'user');
-            input.value = '';
-            
-            // Get configuration
-            const baseUrl = localStorage.getItem('dr_base_url');
-            const deploymentId = localStorage.getItem('dr_deployment_id');
-            const accessToken = localStorage.getItem('access_token');
-            
-            if (!baseUrl) {
-                addMessageToChat('⚠️ Please configure Base URL in settings.', 'assistant');
-                return;
-            }
-            
-            if (!deploymentId) {
-                addMessageToChat('⚠️ Please configure Deployment ID in settings.', 'assistant');
-                return;
-            }
-            
-            try {
-                addMessageToChat('⏳ Calling DataRobot API...', 'assistant');
-                
-                // Call DataRobot API
-                const apiUrl = `${baseUrl}/api/v2/deployments/${deploymentId}/predictions`;
-                console.log('Calling:', apiUrl);
-                console.log('Using token:', accessToken.substring(0, 20) + '...');
-                
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${accessToken}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        data: [{ text: message }]
-                    })
-                });
-                
-                console.log('Response status:', response.status);
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`API Error ${response.status}: ${errorText}`);
-                }
-                
-                const data = await response.json();
-                console.log('Response data:', data);
-                
-                // Remove "calling" message
-                const messages = document.getElementById('chatMessages');
-                if (messages.lastChild.textContent.includes('⏳')) {
-                    messages.removeChild(messages.lastChild);
-                }
-                
-                // Display response
-                const prediction = data.data?.[0]?.prediction || JSON.stringify(data, null, 2);
-                addMessageToChat(`✓ Response: ${prediction}`, 'assistant');
-                
-            } catch (error) {
-                console.error('Error:', error);
-                
-                // Remove "calling" message
-                const messages = document.getElementById('chatMessages');
-                if (messages.lastChild.textContent.includes('⏳')) {
-                    messages.removeChild(messages.lastChild);
-                }
-                
-                addMessageToChat(`❌ Error: ${error.message}`, 'assistant');
-            }
-        }
-
-        // Add message to chat display
-        function addMessageToChat(message, sender) {
-            const chatMessages = document.getElementById('chatMessages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}`;
-            messageDiv.textContent = message;
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        // Show status message
-        function showStatus(message, type) {
-            const statusDiv = document.getElementById('statusMessage');
-            statusDiv.className = `status ${type}`;
-            statusDiv.textContent = message;
-            statusDiv.style.display = 'block';
-            
-            setTimeout(() => {
-                statusDiv.style.display = 'none';
-            }, 5000);
-        }
-
-        // Generate random string for OAuth state
-        function generateRandomString() {
-            const array = new Uint8Array(32);
-            crypto.getRandomValues(array);
-            return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+            return result;
         }
     </script>
 </body>
