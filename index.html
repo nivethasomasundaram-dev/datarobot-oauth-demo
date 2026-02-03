@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataRobot ChatBot</title>
+    <title>DataRobot ChatBot Login</title>
     <style>
         * {
             margin: 0;
@@ -25,14 +25,10 @@
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 40px;
-            max-width: 600px;
+            padding: 50px 40px;
+            max-width: 500px;
             width: 100%;
-        }
-        
-        .logo {
             text-align: center;
-            margin-bottom: 30px;
         }
         
         .logo-icon {
@@ -50,41 +46,13 @@
         h1 {
             color: #333;
             font-size: 28px;
-            text-align: center;
             margin-bottom: 10px;
         }
         
         .subtitle {
             color: #666;
             font-size: 16px;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            color: #333;
-            font-weight: 600;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-        
-        select, input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
-        
-        select:focus, input:focus {
-            outline: none;
-            border-color: #667eea;
+            margin-bottom: 40px;
         }
         
         .login-button {
@@ -99,7 +67,6 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-            margin-top: 10px;
         }
         
         .login-button:hover {
@@ -107,197 +74,41 @@
             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
         }
         
-        .login-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
         .info {
-            margin-top: 20px;
+            margin-top: 30px;
             padding: 15px;
             background: #f8f9fa;
             border-radius: 8px;
             font-size: 13px;
             color: #666;
-        }
-        
-        .config-details {
-            margin-top: 15px;
-            padding: 15px;
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            border-radius: 8px;
-            font-size: 13px;
-            display: none;
-        }
-        
-        .config-details.show {
-            display: block;
-        }
-        
-        .config-details strong {
-            color: #856404;
+            text-align: left;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="logo">
-            <div class="logo-icon">🤖</div>
-            <h1>DataRobot ChatBot</h1>
-            <p class="subtitle">Intelligent AI Assistant</p>
-        </div>
+        <div class="logo-icon">🤖</div>
+        <h1>DataRobot ChatBot</h1>
+        <p class="subtitle">Connect with your DataRobot account</p>
         
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="environment">Select Environment</label>
-                <select id="environment" required>
-                    <option value="">Choose an environment...</option>
-                    <option value="qa">QA Environment (Okta)</option>
-                    <option value="staging">Staging (Okta)</option>
-                    <option value="prod">Production (Okta)</option>
-                    <option value="entraid-demo">Enterprise Demo (EntraID)</option>
-                    <option value="custom">Custom Configuration...</option>
-                </select>
-            </div>
-            
-            <div class="form-group" id="deploymentGroup" style="display: none;">
-                <label for="deployment">Select Deployment (Optional)</label>
-                <select id="deployment">
-                    <option value="">Default ChatBot</option>
-                    <option value="customer-churn">Customer Churn Predictor</option>
-                    <option value="sentiment-analysis">Sentiment Analysis</option>
-                    <option value="custom-model">Custom Model...</option>
-                </select>
-            </div>
-            
-            <div id="customConfig" style="display: none;">
-                <div class="form-group">
-                    <label for="customAuthDomain">Auth Domain</label>
-                    <input type="text" id="customAuthDomain" placeholder="your-domain.okta.com">
-                </div>
-                <div class="form-group">
-                    <label for="customClientId">Client ID</label>
-                    <input type="text" id="customClientId" placeholder="0oabc...">
-                </div>
-                <div class="form-group">
-                    <label for="customDataRobotUrl">DataRobot Base URL</label>
-                    <input type="text" id="customDataRobotUrl" placeholder="https://app.datarobot.com">
-                </div>
-            </div>
-            
-            <div class="config-details" id="configDetails"></div>
-            
-            <button type="submit" class="login-button" id="loginButton">
-                Continue to Login
-            </button>
-        </form>
+        <button class="login-button" onclick="login()">
+            Login with Okta
+        </button>
         
         <div class="info">
             <strong>ℹ️ About this application:</strong><br>
-            This ChatBot connects to DataRobot deployments using secure OAuth authentication. 
-            Select your environment above to get started.
+            This ChatBot connects to your DataRobot account using secure OAuth authentication via Okta.
         </div>
     </div>
 
     <script>
-        // Configuration mappings
-        const configs = {
-            qa: {
-                name: 'QA Environment',
-                authProvider: 'okta',
-                authDomain: 'agents-dell.oktapreview.com',
-                clientId: '0oasm7gb2oAVsX8c81d7',
-                dataRobotUrl: 'https://app.datarobot.com',
-                redirectUri: 'https://main.d1nmjhv80u87ew.amplifyapp.com/callback.html'
-            },
-            staging: {
-                name: 'Staging Environment',
-                authProvider: 'okta',
-                authDomain: 'staging.oktapreview.com',
-                clientId: 'YOUR_STAGING_CLIENT_ID',
-                dataRobotUrl: 'https://staging.datarobot.com',
-                redirectUri: 'https://main.d1nmjhv80u87ew.amplifyapp.com/callback.html'
-            },
-            prod: {
-                name: 'Production',
-                authProvider: 'okta',
-                authDomain: 'prod.okta.com',
-                clientId: 'YOUR_PROD_CLIENT_ID',
-                dataRobotUrl: 'https://app.datarobot.com',
-                redirectUri: 'https://main.d1nmjhv80u87ew.amplifyapp.com/callback.html'
-            },
-            'entraid-demo': {
-                name: 'Enterprise Demo (EntraID)',
-                authProvider: 'entraid',
-                tenantId: 'YOUR_TENANT_ID',
-                clientId: 'YOUR_ENTRAID_CLIENT_ID',
-                dataRobotUrl: 'https://app.datarobot.com',
-                redirectUri: 'https://main.d1nmjhv80u87ew.amplifyapp.com/callback.html'
-            }
+        // Configuration
+        const config = {
+            authDomain: 'agents-dell.oktapreview.com',
+            clientId: '0oasm7gb2oAVsX8c81d7',
+            dataRobotUrl: 'https://dr-app-charts-master-daily.eks.delivery.drdev.io',
+            redirectUri: 'https://main.d1nmjhv80u87ew.amplifyapp.com/callback.html'
         };
-
-        // Event listeners
-        document.getElementById('environment').addEventListener('change', function(e) {
-            const value = e.target.value;
-            const deploymentGroup = document.getElementById('deploymentGroup');
-            const customConfig = document.getElementById('customConfig');
-            const configDetails = document.getElementById('configDetails');
-            const loginButton = document.getElementById('loginButton');
-            
-            if (value === 'custom') {
-                customConfig.style.display = 'block';
-                deploymentGroup.style.display = 'none';
-                configDetails.classList.remove('show');
-                loginButton.disabled = false;
-            } else if (value) {
-                customConfig.style.display = 'none';
-                deploymentGroup.style.display = 'block';
-                
-                const config = configs[value];
-                configDetails.innerHTML = `
-                    <strong>Configuration Preview:</strong><br>
-                    Auth Provider: ${config.authProvider.toUpperCase()}<br>
-                    ${config.authProvider === 'okta' ? 'Domain: ' + config.authDomain : 'Tenant: ' + config.tenantId}<br>
-                    DataRobot: ${config.dataRobotUrl}
-                `;
-                configDetails.classList.add('show');
-                loginButton.disabled = false;
-            } else {
-                customConfig.style.display = 'none';
-                deploymentGroup.style.display = 'none';
-                configDetails.classList.remove('show');
-                loginButton.disabled = true;
-            }
-        });
-
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const environment = document.getElementById('environment').value;
-            let config;
-            
-            if (environment === 'custom') {
-                config = {
-                    name: 'Custom Configuration',
-                    authProvider: 'okta',
-                    authDomain: document.getElementById('customAuthDomain').value,
-                    clientId: document.getElementById('customClientId').value,
-                    dataRobotUrl: document.getElementById('customDataRobotUrl').value,
-                    redirectUri: 'https://main.d1nmjhv80u87ew.amplifyapp.com/callback.html'
-                };
-            } else {
-                config = configs[environment];
-            }
-            
-            // Store configuration
-            sessionStorage.setItem('chatbot_config', JSON.stringify(config));
-            sessionStorage.setItem('selected_deployment', document.getElementById('deployment').value);
-            
-            // Initiate OAuth flow
-            initiateOAuthFlow(config);
-        });
 
         function generateRandomString(length) {
             const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -307,37 +118,26 @@
                 .join('');
         }
 
-        function initiateOAuthFlow(config) {
+        function login() {
             console.log('=== Starting OAuth Flow ===');
-            console.log('Config:', config);
             
+            // Store configuration
+            sessionStorage.setItem('chatbot_config', JSON.stringify(config));
+            
+            // Generate and store state
             const state = generateRandomString(32);
             sessionStorage.setItem('oauth_state', state);
             
-            let authUrl;
+            // Build authorization URL
+            const params = new URLSearchParams({
+                client_id: config.clientId,
+                response_type: 'code',
+                scope: 'openid profile email',
+                redirect_uri: config.redirectUri,
+                state: state
+            });
             
-            if (config.authProvider === 'okta') {
-                const params = new URLSearchParams({
-                    client_id: config.clientId,
-                    response_type: 'code',
-                    scope: 'openid profile email',
-                    redirect_uri: config.redirectUri,
-                    state: state
-                });
-                
-                authUrl = `https://${config.authDomain}/oauth2/default/v1/authorize?${params.toString()}`;
-            } else if (config.authProvider === 'entraid') {
-                const params = new URLSearchParams({
-                    client_id: config.clientId,
-                    response_type: 'code',
-                    scope: 'openid profile email',
-                    redirect_uri: config.redirectUri,
-                    state: state,
-                    response_mode: 'query'
-                });
-                
-                authUrl = `https://login.microsoftonline.com/${config.tenantId}/oauth2/v2.0/authorize?${params.toString()}`;
-            }
+            const authUrl = `https://${config.authDomain}/oauth2/default/v1/authorize?${params.toString()}`;
             
             console.log('Redirecting to:', authUrl);
             window.location.href = authUrl;
