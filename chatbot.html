@@ -10,102 +10,73 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #f5f7fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chat-container {
+            width: 90%;
+            max-width: 800px;
+            height: 90vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
             overflow: hidden;
         }
-        
-        .header {
+
+        .chat-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            position: relative;
         }
-        
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .logo {
-            width: 40px;
-            height: 40px;
+
+        .chat-header .config-btn {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
             background: rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-        }
-        
-        .header h1 {
-            font-size: 20px;
-            font-weight: 600;
-        }
-        
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .user-badge {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-        
-        .logout-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border: none;
             color: white;
-            padding: 8px 16px;
-            border-radius: 6px;
+            padding: 8px 15px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
-            transition: background 0.3s;
         }
-        
-        .logout-btn:hover {
+
+        .chat-header .config-btn:hover {
             background: rgba(255, 255, 255, 0.3);
         }
-        
-        .chat-container {
-            display: flex;
-            flex-direction: column;
-            height: calc(100vh - 70px);
-            max-width: 900px;
-            margin: 0 auto;
-            background: white;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-        }
-        
-        .messages {
+
+        .chat-messages {
             flex: 1;
-            overflow-y: auto;
             padding: 20px;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 15px;
         }
-        
+
         .message {
             display: flex;
-            gap: 12px;
-            max-width: 80%;
-            animation: slideIn 0.3s ease;
+            align-items: flex-start;
+            gap: 10px;
+            animation: fadeIn 0.3s ease-in;
         }
-        
-        @keyframes slideIn {
+
+        @keyframes fadeIn {
             from {
                 opacity: 0;
                 transform: translateY(10px);
@@ -115,88 +86,79 @@
                 transform: translateY(0);
             }
         }
-        
+
         .message.user {
-            align-self: flex-end;
             flex-direction: row-reverse;
         }
-        
+
         .message-avatar {
-            width: 36px;
-            height: 36px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-weight: bold;
+            color: white;
             flex-shrink: 0;
-            font-size: 18px;
         }
-        
-        .message.bot .message-avatar {
+
+        .message.user .message-avatar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-        
-        .message.user .message-avatar {
-            background: #e0e0e0;
+
+        .message.assistant .message-avatar {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
         }
-        
+
         .message-content {
-            background: #f5f7fa;
+            max-width: 70%;
             padding: 12px 16px;
-            border-radius: 12px;
+            border-radius: 18px;
             line-height: 1.5;
-            font-size: 15px;
-            white-space: pre-wrap;
             word-wrap: break-word;
         }
-        
+
         .message.user .message-content {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
-        
-        .message.error .message-content {
-            background: #fee;
-            color: #c33;
-            border: 1px solid #fcc;
+
+        .message.assistant .message-content {
+            background: #f1f3f4;
+            color: #333;
         }
-        
-        .message-time {
-            font-size: 11px;
-            color: #999;
-            margin-top: 4px;
-        }
-        
+
         .typing-indicator {
             display: none;
+            align-items: center;
+            gap: 10px;
             padding: 12px 16px;
-            background: #f5f7fa;
-            border-radius: 12px;
-            width: 60px;
+            background: #f1f3f4;
+            border-radius: 18px;
+            width: fit-content;
         }
-        
-        .typing-indicator.show {
-            display: block;
+
+        .typing-indicator.active {
+            display: flex;
         }
-        
+
         .typing-indicator span {
-            height: 8px;
             width: 8px;
+            height: 8px;
             background: #999;
             border-radius: 50%;
-            display: inline-block;
-            margin-right: 4px;
             animation: typing 1.4s infinite;
         }
-        
+
         .typing-indicator span:nth-child(2) {
             animation-delay: 0.2s;
         }
-        
+
         .typing-indicator span:nth-child(3) {
             animation-delay: 0.4s;
         }
-        
+
         @keyframes typing {
             0%, 60%, 100% {
                 transform: translateY(0);
@@ -205,324 +167,381 @@
                 transform: translateY(-10px);
             }
         }
-        
-        .input-area {
+
+        .chat-input-container {
             padding: 20px;
+            background: #f8f9fa;
             border-top: 1px solid #e0e0e0;
-            background: white;
-        }
-        
-        .input-container {
             display: flex;
             gap: 10px;
         }
-        
-        #messageInput {
+
+        .chat-input {
             flex: 1;
             padding: 12px 16px;
             border: 2px solid #e0e0e0;
-            border-radius: 24px;
-            font-size: 15px;
-            font-family: inherit;
+            border-radius: 25px;
+            font-size: 16px;
             outline: none;
             transition: border-color 0.3s;
         }
-        
-        #messageInput:focus {
+
+        .chat-input:focus {
             border-color: #667eea;
         }
-        
-        #sendButton {
-            width: 48px;
-            height: 48px;
+
+        .send-button {
+            padding: 12px 24px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            border-radius: 50%;
             color: white;
-            font-size: 20px;
+            border: none;
+            border-radius: 25px;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
             transition: transform 0.2s;
         }
-        
-        #sendButton:hover:not(:disabled) {
+
+        .send-button:hover {
             transform: scale(1.05);
         }
-        
-        #sendButton:disabled {
-            opacity: 0.6;
+
+        .send-button:active {
+            transform: scale(0.95);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
             cursor: not-allowed;
         }
-        
-        .welcome-message {
+
+        .error-message {
+            background: #ff4444;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 20px;
             text-align: center;
-            padding: 40px 20px;
-            color: #666;
         }
-        
-        .welcome-message h2 {
+
+        .config-panel {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .config-panel.active {
+            display: block;
+        }
+
+        .config-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        .config-overlay.active {
+            display: block;
+        }
+
+        .config-panel h3 {
+            margin-bottom: 20px;
             color: #333;
-            margin-bottom: 10px;
         }
-        
-        .info-badge {
-            background: #e3f2fd;
-            border: 1px solid #90caf9;
-            padding: 10px 15px;
-            border-radius: 6px;
-            font-size: 12px;
-            color: #1976d2;
+
+        .config-panel label {
+            display: block;
+            margin-bottom: 8px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .config-panel input {
+            width: 100%;
+            padding: 10px;
             margin-bottom: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .config-panel button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .config-panel button:hover {
+            opacity: 0.9;
+        }
+
+        .user-info {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="header-left">
-            <div class="logo">🤖</div>
-            <h1>DataRobot ChatBot</h1>
-        </div>
-        <div class="header-right">
-            <div class="user-badge" id="userBadge">Okta User</div>
-            <button class="logout-btn" onclick="logout()">Logout</button>
-        </div>
+    <div class="config-overlay" id="configOverlay"></div>
+    <div class="config-panel" id="configPanel">
+        <h3>⚙️ Configuration</h3>
+        <label for="datarobotUrl">DataRobot URL:</label>
+        <input type="text" id="datarobotUrl" placeholder="https://dr-app-charts-master-daily.eks.delivery.drdev.io">
+        
+        <label for="deploymentId">Deployment ID:</label>
+        <input type="text" id="deploymentId" placeholder="Enter deployment ID">
+        
+        <button onclick="saveConfig()">Save Configuration</button>
     </div>
 
     <div class="chat-container">
-        <div class="messages" id="messages">
-            <div class="info-badge">
-                🔗 Connected via Lambda Proxy to: <strong>https://staging.datarobot.com</strong><br>
-                📦 Deployment ID: <strong>6977755b9d4b63aa1fdea8a2</strong>
-            </div>
-            <div class="welcome-message">
-                <h2>👋 Welcome to DataRobot ChatBot!</h2>
-                <p>You're authenticated with Okta. Start chatting with the AI!</p>
+        <div class="chat-header">
+            <span class="user-info" id="userInfo"></span>
+            DataRobot AI Assistant
+            <button class="config-btn" onclick="openConfig()">⚙️ Config</button>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="message assistant">
+                <div class="message-avatar">AI</div>
+                <div class="message-content">
+                    Hello! I'm your DataRobot AI Assistant. How can I help you today?
+                </div>
             </div>
         </div>
         
-        <div class="input-area">
-            <div class="input-container">
-                <input 
-                    type="text" 
-                    id="messageInput" 
-                    placeholder="Type your message..." 
-                    autocomplete="off"
-                >
-                <button id="sendButton">
-                    ➤
-                </button>
-            </div>
+        <div class="typing-indicator" id="typingIndicator">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        
+        <div class="chat-input-container">
+            <input 
+                type="text" 
+                class="chat-input" 
+                id="messageInput" 
+                placeholder="Type your message here..."
+                onkeypress="if(event.key === 'Enter') sendMessage()"
+            >
+            <button class="send-button" onclick="sendMessage()">Send</button>
         </div>
     </div>
 
     <script>
-        // CONFIGURATION - Using Lambda Proxy
+        // Configuration
         const LAMBDA_PROXY_URL = 'https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api';
-        const DATAROBOT_URL = 'https://staging.datarobot.com';
-        const DEPLOYMENT_ID = '6977755b9d4b63aa1fdea8a2';
-
-        // Check authentication
-        const accessToken = sessionStorage.getItem('access_token');
         
-        if (!accessToken) {
-            console.log('No access token found, redirecting to login');
-            window.location.href = 'index.html';
-        }
+        // Default configuration - using drdev.io URL
+        let config = {
+            datarobotUrl: 'https://dr-app-charts-master-daily.eks.delivery.drdev.io',
+            deploymentId: '6977755b9d4b63aa1fdea8a2'
+        };
 
-        // Chat functionality
-        const messagesDiv = document.getElementById('messages');
-        const messageInput = document.getElementById('messageInput');
-        const sendButton = document.getElementById('sendButton');
-
-        // Conversation history for context
+        // Conversation history
         let conversationHistory = [];
 
-        // Initialize
-        function init() {
-            console.log('✅ ChatBot initialized');
-            console.log('Lambda Proxy URL:', LAMBDA_PROXY_URL);
-            console.log('DataRobot URL:', DATAROBOT_URL);
-            console.log('Deployment ID:', DEPLOYMENT_ID);
-            console.log('Access Token:', accessToken ? accessToken.substring(0, 30) + '...' : 'Missing');
+        // Initialize the chat
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('ChatBot initialized');
+            
+            // Load config from sessionStorage
+            const savedConfig = sessionStorage.getItem('datarobot_config');
+            if (savedConfig) {
+                config = JSON.parse(savedConfig);
+            }
+            
+            // Get user info
+            const userInfo = sessionStorage.getItem('user_info');
+            if (userInfo) {
+                const user = JSON.parse(userInfo);
+                document.getElementById('userInfo').textContent = user.email || 'User';
+            }
+            
+            // Check if access token exists
+            const accessToken = sessionStorage.getItem('access_token');
+            if (!accessToken) {
+                showError('Not authenticated. Please log in first.');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+            }
+        });
+
+        function openConfig() {
+            document.getElementById('configPanel').classList.add('active');
+            document.getElementById('configOverlay').classList.add('active');
+            document.getElementById('datarobotUrl').value = config.datarobotUrl;
+            document.getElementById('deploymentId').value = config.deploymentId;
         }
 
-        // Message handling
-        function addMessage(text, isUser = false, isError = false) {
+        function saveConfig() {
+            config.datarobotUrl = document.getElementById('datarobotUrl').value;
+            config.deploymentId = document.getElementById('deploymentId').value;
+            
+            sessionStorage.setItem('datarobot_config', JSON.stringify(config));
+            
+            document.getElementById('configPanel').classList.remove('active');
+            document.getElementById('configOverlay').classList.remove('active');
+            
+            addMessage('Configuration updated successfully!', 'assistant');
+        }
+
+        document.getElementById('configOverlay').addEventListener('click', function() {
+            document.getElementById('configPanel').classList.remove('active');
+            document.getElementById('configOverlay').classList.remove('active');
+        });
+
+        function addMessage(text, sender = 'user') {
+            const messagesContainer = document.getElementById('chatMessages');
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isUser ? 'user' : 'bot'}${isError ? ' error' : ''}`;
+            messageDiv.className = `message ${sender}`;
             
-            const time = new Date().toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = sender === 'user' ? 'You' : 'AI';
             
-            messageDiv.innerHTML = `
-                <div class="message-avatar">${isUser ? '👤' : isError ? '⚠️' : '🤖'}</div>
-                <div>
-                    <div class="message-content">${text}</div>
-                    <div class="message-time">${time}</div>
-                </div>
-            `;
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            content.textContent = text;
             
-            // Remove welcome message if exists
-            const welcome = messagesDiv.querySelector('.welcome-message');
-            if (welcome) welcome.remove();
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(content);
+            messagesContainer.appendChild(messageDiv);
             
-            messagesDiv.appendChild(messageDiv);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
         function showTypingIndicator() {
-            const typing = document.createElement('div');
-            typing.className = 'message bot';
-            typing.id = 'typing';
-            typing.innerHTML = `
-                <div class="message-avatar">🤖</div>
-                <div class="typing-indicator show">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            `;
-            messagesDiv.appendChild(typing);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            document.getElementById('typingIndicator').classList.add('active');
         }
 
         function hideTypingIndicator() {
-            const typing = document.getElementById('typing');
-            if (typing) typing.remove();
+            document.getElementById('typingIndicator').classList.remove('active');
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            document.querySelector('.chat-container').insertBefore(errorDiv, document.querySelector('.chat-messages'));
+            
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
         }
 
         async function sendMessage() {
-            const message = messageInput.value.trim();
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
             if (!message) return;
-
-            // Add user message
-            addMessage(message, true);
-            messageInput.value = '';
-            sendButton.disabled = true;
-
+            
+            // Add user message to chat
+            addMessage(message, 'user');
+            input.value = '';
+            
             // Add to conversation history
             conversationHistory.push({
-                role: "user",
+                role: 'user',
                 content: message
             });
-
+            
             // Show typing indicator
             showTypingIndicator();
-
+            
             try {
-                console.log('=== Calling DataRobot via Lambda Proxy ===');
+                const accessToken = sessionStorage.getItem('access_token');
                 
-                // Prepare request for Lambda proxy
-                const lambdaRequestBody = {
-                    access_token: accessToken,
-                    datarobot_url: DATAROBOT_URL,
-                    endpoint: `/api/v2/deployments/${DEPLOYMENT_ID}/chat/completions`,
-                    method: 'POST',
-                    request_body: {
-                        model: "datarobot-deployed-llm",
-                        messages: conversationHistory
-                    }
-                };
-
-                console.log('Lambda Request:', {
-                    url: LAMBDA_PROXY_URL,
-                    endpoint: lambdaRequestBody.endpoint,
-                    messages: conversationHistory
-                });
-
-                // Call Lambda proxy
+                if (!accessToken) {
+                    throw new Error('No access token found. Please log in again.');
+                }
+                
+                console.log('Calling DataRobot via Lambda Proxy...');
+                console.log('DataRobot URL:', config.datarobotUrl);
+                console.log('Deployment ID:', config.deploymentId);
+                
+                // Call Lambda proxy which calls DataRobot
                 const response = await fetch(LAMBDA_PROXY_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(lambdaRequestBody)
+                    body: JSON.stringify({
+                        access_token: accessToken,
+                        datarobot_url: config.datarobotUrl,
+                        endpoint: `/api/v2/deployments/${config.deploymentId}/chat/completions`,
+                        method: 'POST',
+                        request_body: {
+                            model: 'datarobot-deployed-llm',
+                            messages: conversationHistory
+                        }
+                    })
                 });
-
+                
                 console.log('Lambda Response Status:', response.status);
-
+                
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Lambda Error Response:', errorText);
-                    
-                    let errorMessage;
-                    try {
-                        const errorJson = JSON.parse(errorText);
-                        errorMessage = errorJson.error || errorJson.detail || errorText;
-                    } catch {
-                        errorMessage = errorText;
-                    }
-                    
-                    throw new Error(`Lambda Error (${response.status}): ${errorMessage}`);
+                    const errorData = await response.json();
+                    throw new Error(`Lambda Error (${response.status}): ${JSON.stringify(errorData)}`);
                 }
-
+                
                 const data = await response.json();
-                console.log('DataRobot Response via Lambda:', data);
-
+                console.log('DataRobot Response:', data);
+                
                 hideTypingIndicator();
-
-                // Extract assistant response
-                let assistantMessage;
-                if (data.choices && data.choices.length > 0 && data.choices[0].message) {
-                    assistantMessage = data.choices[0].message.content;
+                
+                // Extract assistant message
+                if (data.choices && data.choices[0] && data.choices[0].message) {
+                    const assistantMessage = data.choices[0].message.content;
                     
                     // Add to conversation history
                     conversationHistory.push({
-                        role: "assistant",
+                        role: 'assistant',
                         content: assistantMessage
                     });
-                } else if (data.message) {
-                    assistantMessage = data.message;
-                } else if (data.text) {
-                    assistantMessage = data.text;
+                    
+                    // Display response
+                    addMessage(assistantMessage, 'assistant');
                 } else {
-                    assistantMessage = 'I received your message but got an unexpected response format.';
-                    console.log('Unexpected response format:', data);
+                    throw new Error('Unexpected response format from DataRobot');
                 }
-
-                addMessage(assistantMessage);
-
+                
             } catch (error) {
-                console.error('❌ Error:', error);
+                console.error('Error:', error);
                 hideTypingIndicator();
-                
-                // Remove the last user message from history since it failed
-                conversationHistory.pop();
-                
-                let errorMsg = `Error: ${error.message}\n\nPlease check:\n- Your access token is valid\n- The Lambda proxy is configured correctly\n- The deployment ID is correct`;
-                
-                addMessage(errorMsg, false, true);
-            } finally {
-                sendButton.disabled = false;
-                messageInput.focus();
+                showError(error.message);
+                addMessage('Sorry, I encountered an error. Please try again.', 'assistant');
             }
         }
 
-        // Event listeners
-        sendButton.addEventListener('click', sendMessage);
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
-
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                sessionStorage.clear();
-                window.location.href = 'index.html';
-            }
-        }
-
-        // Focus input on load
-        messageInput.focus();
-        
-        // Initialize
-        init();
+        // Auto-focus on input
+        document.getElementById('messageInput').focus();
     </script>
 </body>
 </html>
