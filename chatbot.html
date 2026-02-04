@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataRobot Chatbot with Diagnostics</title>
+    <title>DataRobot Chatbot - Direct API</title>
     <style>
         * {
             margin: 0;
@@ -171,6 +171,31 @@
 
         .btn-reset:hover {
             background: #5a6268;
+        }
+
+        /* Alert Banner */
+        .alert-banner {
+            background: #fff3cd;
+            border-bottom: 2px solid #ffc107;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-banner.info {
+            background: #d1ecf1;
+            border-color: #17a2b8;
+        }
+
+        .alert-icon {
+            font-size: 20px;
+        }
+
+        .alert-text {
+            flex: 1;
+            font-size: 13px;
+            color: #333;
         }
 
         /* Chat Messages */
@@ -488,6 +513,14 @@
                 <button class="config-toggle" onclick="toggleConfig()">⚙️ Settings</button>
             </div>
 
+            <!-- Info Banner -->
+            <div class="alert-banner info">
+                <div class="alert-icon">ℹ️</div>
+                <div class="alert-text">
+                    <strong>Direct API Mode:</strong> This chatbot calls DataRobot API directly from your browser (no Lambda proxy needed).
+                </div>
+            </div>
+
             <!-- Configuration Panel -->
             <div class="config-panel" id="configPanel">
                 <div class="config-field">
@@ -497,10 +530,6 @@
                 <div class="config-field">
                     <label>DataRobot URL</label>
                     <input type="text" id="configDatarobotUrl" value="https://dr-app-charts-master-daily.eks.delivery.drdev.io">
-                </div>
-                <div class="config-field">
-                    <label>Lambda Proxy URL</label>
-                    <input type="text" id="configLambdaUrl" value="https://cotmuqxk67nszfb32cotmuqxk67.lambda-url.us-east-1.on.aws/">
                 </div>
                 <div class="config-buttons">
                     <button class="btn-save" onclick="saveConfig()">💾 Save Config</button>
@@ -575,8 +604,7 @@
         // Configuration
         let config = {
             deploymentId: '6981fecac1ab901638754f1e',
-            datarobotUrl: 'https://dr-app-charts-master-daily.eks.delivery.drdev.io',
-            lambdaUrl: 'https://cotmuqxk67nszfb32cotmuqxk67.lambda-url.us-east-1.on.aws/'
+            datarobotUrl: 'https://dr-app-charts-master-daily.eks.delivery.drdev.io'
         };
 
         let conversationHistory = [];
@@ -616,14 +644,12 @@
                 config = JSON.parse(saved);
                 document.getElementById('configDeploymentId').value = config.deploymentId;
                 document.getElementById('configDatarobotUrl').value = config.datarobotUrl;
-                document.getElementById('configLambdaUrl').value = config.lambdaUrl;
             }
         }
 
         function saveConfig() {
             config.deploymentId = document.getElementById('configDeploymentId').value;
             config.datarobotUrl = document.getElementById('configDatarobotUrl').value;
-            config.lambdaUrl = document.getElementById('configLambdaUrl').value;
             localStorage.setItem('chatbotConfig', JSON.stringify(config));
             updateConfigDisplay();
             addMessage('assistant', '✅ Configuration saved successfully!');
@@ -632,13 +658,11 @@
         function resetConfig() {
             config = {
                 deploymentId: '6981fecac1ab901638754f1e',
-                datarobotUrl: 'https://dr-app-charts-master-daily.eks.delivery.drdev.io',
-                lambdaUrl: 'https://cotmuqxk67nszfb32cotmuqxk67.lambda-url.us-east-1.on.aws/'
+                datarobotUrl: 'https://dr-app-charts-master-daily.eks.delivery.drdev.io'
             };
             localStorage.removeItem('chatbotConfig');
             document.getElementById('configDeploymentId').value = config.deploymentId;
             document.getElementById('configDatarobotUrl').value = config.datarobotUrl;
-            document.getElementById('configLambdaUrl').value = config.lambdaUrl;
             updateConfigDisplay();
             addMessage('assistant', '🔄 Configuration reset to defaults!');
         }
@@ -655,8 +679,8 @@
                     <div class="diag-value">${config.datarobotUrl}</div>
                 </div>
                 <div class="diag-row">
-                    <div class="diag-label">Lambda URL:</div>
-                    <div class="diag-value">${config.lambdaUrl}</div>
+                    <div class="diag-label">API Mode:</div>
+                    <div class="diag-value"><span class="status-badge success">Direct API</span></div>
                 </div>
             `;
         }
@@ -710,6 +734,35 @@
             }
         }
 
+        // Direct API call helper
+        async function callDataRobotAPI(endpoint, method = 'GET', body = null) {
+            if (!accessToken) {
+                throw new Error('No access token found');
+            }
+
+            const url = `${config.datarobotUrl}${endpoint}`;
+            const options = {
+                method: method,
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                }
+            };
+
+            if (body && method !== 'GET') {
+                options.body = JSON.stringify(body);
+            }
+
+            const response = await fetch(url, options);
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            return await response.json();
+        }
+
         // Deployment Checking
         async function checkCurrentDeployment() {
             const statusDiv = document.getElementById('deploymentStatus');
@@ -729,22 +782,7 @@
             `;
 
             try {
-                const response = await fetch(config.lambdaUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        accessToken: accessToken,
-                        datarobotUrl: config.datarobotUrl,
-                        endpoint: `/api/v2/deployments/${config.deploymentId}/`,
-                        method: 'GET'
-                    })
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || `HTTP ${response.status}`);
-                }
+                const data = await callDataRobotAPI(`/api/v2/deployments/${config.deploymentId}/`);
 
                 const depOrgId = data.organizationId || data.organization_id || 'Unknown';
                 const isMatch = depOrgId === userOrgId;
@@ -803,23 +841,7 @@
             listDiv.innerHTML = `<div style="text-align: center; padding: 10px;"><small>Loading...</small></div>`;
 
             try {
-                const response = await fetch(config.lambdaUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        accessToken: accessToken,
-                        datarobotUrl: config.datarobotUrl,
-                        endpoint: '/api/v2/deployments/',
-                        method: 'GET'
-                    })
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || `HTTP ${response.status}`);
-                }
-
+                const data = await callDataRobotAPI('/api/v2/deployments/');
                 allDeployments = data.data || data || [];
 
                 if (allDeployments.length === 0) {
@@ -923,24 +945,12 @@
             showThinking();
 
             try {
-                const response = await fetch(config.lambdaUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        accessToken: accessToken,
-                        datarobotUrl: config.datarobotUrl,
-                        deploymentId: config.deploymentId,
-                        messages: conversationHistory
-                    })
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || `HTTP ${response.status}: ${data.message || 'Unknown error'}`);
-                }
+                // Call DataRobot API directly
+                const data = await callDataRobotAPI(
+                    `/api/v2/deployments/${config.deploymentId}/chat/completions`,
+                    'POST',
+                    { messages: conversationHistory }
+                );
 
                 const aiMessage = data.choices?.[0]?.message?.content || data.message || 'No response received';
                 conversationHistory.push({ role: 'assistant', content: aiMessage });
