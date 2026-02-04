@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataRobot Chatbot - Lambda Proxy</title>
+    <title>DataRobot Chatbot - API Gateway</title>
     <style>
         * {
             margin: 0;
@@ -170,8 +170,8 @@
         }
 
         .alert-banner {
-            background: #d1ecf1;
-            border-bottom: 2px solid #17a2b8;
+            background: #d4edda;
+            border-bottom: 2px solid #28a745;
             padding: 15px 20px;
             display: flex;
             align-items: center;
@@ -489,9 +489,9 @@
             </div>
 
             <div class="alert-banner">
-                <div class="alert-icon">ℹ️</div>
+                <div class="alert-icon">✅</div>
                 <div class="alert-text">
-                    <strong>Lambda Proxy Mode:</strong> All requests go through your Lambda function to avoid CORS issues.
+                    <strong>API Gateway Mode:</strong> Using API Gateway proxy (no CORS issues!)
                 </div>
             </div>
 
@@ -505,8 +505,8 @@
                     <input type="text" id="configDatarobotUrl" value="https://dr-app-charts-master-daily.eks.delivery.drdev.io">
                 </div>
                 <div class="config-field">
-                    <label>Lambda Proxy URL</label>
-                    <input type="text" id="configLambdaUrl" value="https://cotmuqxk67nszfb32cotmuqxk67.lambda-url.us-east-1.on.aws/">
+                    <label>API Gateway URL (Should NOT have CORS issues)</label>
+                    <input type="text" id="configApiUrl" value="https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api">
                 </div>
                 <div class="config-buttons">
                     <button class="btn-save" onclick="saveConfig()">💾 Save Config</button>
@@ -574,7 +574,7 @@
         let config = {
             deploymentId: '6981fecac1ab901638754f1e',
             datarobotUrl: 'https://dr-app-charts-master-daily.eks.delivery.drdev.io',
-            lambdaUrl: 'https://cotmuqxk67nszfb32cotmuqxk67.lambda-url.us-east-1.on.aws/'
+            apiUrl: 'https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api'
         };
 
         let conversationHistory = [];
@@ -611,14 +611,14 @@
                 config = JSON.parse(saved);
                 document.getElementById('configDeploymentId').value = config.deploymentId;
                 document.getElementById('configDatarobotUrl').value = config.datarobotUrl;
-                document.getElementById('configLambdaUrl').value = config.lambdaUrl;
+                document.getElementById('configApiUrl').value = config.apiUrl;
             }
         }
 
         function saveConfig() {
             config.deploymentId = document.getElementById('configDeploymentId').value;
             config.datarobotUrl = document.getElementById('configDatarobotUrl').value;
-            config.lambdaUrl = document.getElementById('configLambdaUrl').value;
+            config.apiUrl = document.getElementById('configApiUrl').value;
             localStorage.setItem('chatbotConfig', JSON.stringify(config));
             updateConfigDisplay();
             addMessage('assistant', '✅ Configuration saved successfully!');
@@ -628,12 +628,12 @@
             config = {
                 deploymentId: '6981fecac1ab901638754f1e',
                 datarobotUrl: 'https://dr-app-charts-master-daily.eks.delivery.drdev.io',
-                lambdaUrl: 'https://cotmuqxk67nszfb32cotmuqxk67.lambda-url.us-east-1.on.aws/'
+                apiUrl: 'https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api'
             };
             localStorage.removeItem('chatbotConfig');
             document.getElementById('configDeploymentId').value = config.deploymentId;
             document.getElementById('configDatarobotUrl').value = config.datarobotUrl;
-            document.getElementById('configLambdaUrl').value = config.lambdaUrl;
+            document.getElementById('configApiUrl').value = config.apiUrl;
             updateConfigDisplay();
             addMessage('assistant', '🔄 Configuration reset to defaults!');
         }
@@ -650,12 +650,12 @@
                     <div class="diag-value">${config.datarobotUrl}</div>
                 </div>
                 <div class="diag-row">
-                    <div class="diag-label">Lambda URL:</div>
-                    <div class="diag-value">${config.lambdaUrl}</div>
+                    <div class="diag-label">API Gateway:</div>
+                    <div class="diag-value">${config.apiUrl}</div>
                 </div>
                 <div class="diag-row">
-                    <div class="diag-label">API Mode:</div>
-                    <div class="diag-value"><span class="status-badge success">Lambda Proxy</span></div>
+                    <div class="diag-label">Proxy Mode:</div>
+                    <div class="diag-value"><span class="status-badge success">API Gateway</span></div>
                 </div>
             `;
         }
@@ -708,34 +708,31 @@
             }
         }
 
-        async function callLambdaProxy(requestBody) {
+        async function callApiGateway(requestBody) {
             if (!accessToken) {
                 throw new Error('No access token found. Please login first.');
             }
 
-            // Ensure Lambda URL doesn't have double slashes
-            const lambdaUrl = config.lambdaUrl.replace(/\/+$/, '');
-            
-            console.log('Calling Lambda proxy:', lambdaUrl);
+            console.log('Calling API Gateway:', config.apiUrl);
             console.log('Request body:', requestBody);
 
-            const response = await fetch(lambdaUrl, {
+            const response = await fetch(config.apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    accessToken: accessToken,
-                    datarobotUrl: config.datarobotUrl,
+                    access_token: accessToken,
+                    datarobot_url: config.datarobotUrl,
                     ...requestBody
                 })
             });
 
-            console.log('Lambda response status:', response.status);
+            console.log('API Gateway response status:', response.status);
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('Lambda error response:', errorText);
+                console.error('API Gateway error response:', errorText);
                 
                 let errorData;
                 try {
@@ -768,7 +765,7 @@
             `;
 
             try {
-                const data = await callLambdaProxy({
+                const data = await callApiGateway({
                     endpoint: `/api/v2/deployments/${config.deploymentId}/`,
                     method: 'GET'
                 });
@@ -830,7 +827,7 @@
             listDiv.innerHTML = `<div style="text-align: center; padding: 10px;"><small>Loading...</small></div>`;
 
             try {
-                const data = await callLambdaProxy({
+                const data = await callApiGateway({
                     endpoint: '/api/v2/deployments/',
                     method: 'GET'
                 });
@@ -934,8 +931,8 @@
             showThinking();
 
             try {
-                const data = await callLambdaProxy({
-                    deploymentId: config.deploymentId,
+                const data = await callApiGateway({
+                    deployment_id: config.deploymentId,
                     messages: conversationHistory
                 });
 
