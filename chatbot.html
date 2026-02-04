@@ -64,19 +64,6 @@
             font-weight: 500;
         }
         
-        .config-badge {
-            background: rgba(255, 255, 255, 0.15);
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 11px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        
-        .config-badge:hover {
-            background: rgba(255, 255, 255, 0.25);
-        }
-        
         .logout-btn {
             background: rgba(255, 255, 255, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.3);
@@ -100,56 +87,6 @@
             margin: 0 auto;
             background: white;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-        }
-        
-        .config-panel {
-            background: #fff3cd;
-            border-bottom: 2px solid #ffc107;
-            padding: 15px 20px;
-            display: none;
-        }
-        
-        .config-panel.show {
-            display: block;
-        }
-        
-        .config-row {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        
-        .config-row:last-child {
-            margin-bottom: 0;
-        }
-        
-        .config-row label {
-            min-width: 120px;
-            font-weight: 600;
-            font-size: 13px;
-        }
-        
-        .config-row input {
-            flex: 1;
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 13px;
-        }
-        
-        .config-row button {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-        }
-        
-        .config-row button:hover {
-            background: #5568d3;
         }
         
         .messages {
@@ -329,6 +266,16 @@
             color: #333;
             margin-bottom: 10px;
         }
+        
+        .info-badge {
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #1976d2;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
@@ -338,29 +285,20 @@
             <h1>DataRobot ChatBot</h1>
         </div>
         <div class="header-right">
-            <div class="config-badge" id="configToggle" onclick="toggleConfig()">⚙️ Configuration</div>
-            <div class="user-badge" id="userBadge">Authenticated</div>
+            <div class="user-badge" id="userBadge">Okta User</div>
             <button class="logout-btn" onclick="logout()">Logout</button>
-        </div>
-    </div>
-
-    <div class="config-panel" id="configPanel">
-        <div class="config-row">
-            <label>DataRobot URL:</label>
-            <input type="text" id="datarobotUrl" value="https://dr-app-charts-master-daily.eks.delivery.drdev.io">
-        </div>
-        <div class="config-row">
-            <label>Deployment ID:</label>
-            <input type="text" id="deploymentId" value="6977755b9d4b63aa1fdea8a2">
-            <button onclick="saveConfig()">Save</button>
         </div>
     </div>
 
     <div class="chat-container">
         <div class="messages" id="messages">
+            <div class="info-badge">
+                🔗 Connected to: <strong>https://staging.datarobot.com</strong><br>
+                📦 Deployment ID: <strong>6977755b9d4b63aa1fdea8a2</strong>
+            </div>
             <div class="welcome-message">
                 <h2>👋 Welcome to DataRobot ChatBot!</h2>
-                <p>You're connected and ready to chat. Ask me anything!</p>
+                <p>You're authenticated with Okta. Start chatting with the AI!</p>
             </div>
         </div>
         
@@ -380,22 +318,17 @@
     </div>
 
     <script>
+        // FIXED CONFIGURATION - Using staging.datarobot.com
+        const DATAROBOT_URL = 'https://staging.datarobot.com';
+        const DEPLOYMENT_ID = '6977755b9d4b63aa1fdea8a2';
+
         // Check authentication
         const accessToken = sessionStorage.getItem('access_token');
-        const configStr = sessionStorage.getItem('chatbot_config');
-        const config = configStr ? JSON.parse(configStr) : null;
         
-        if (!accessToken || !config) {
-            console.log('No access token or config found, redirecting to login');
+        if (!accessToken) {
+            console.log('No access token found, redirecting to login');
             window.location.href = 'index.html';
         }
-
-        // Load saved configuration
-        let datarobotUrl = sessionStorage.getItem('datarobot_url') || 'https://dr-app-charts-master-daily.eks.delivery.drdev.io';
-        let deploymentId = sessionStorage.getItem('deployment_id') || '6977755b9d4b63aa1fdea8a2';
-
-        document.getElementById('datarobotUrl').value = datarobotUrl;
-        document.getElementById('deploymentId').value = deploymentId;
 
         // Chat functionality
         const messagesDiv = document.getElementById('messages');
@@ -405,37 +338,12 @@
         // Conversation history for context
         let conversationHistory = [];
 
-        function toggleConfig() {
-            const panel = document.getElementById('configPanel');
-            panel.classList.toggle('show');
-        }
-
-        function saveConfig() {
-            datarobotUrl = document.getElementById('datarobotUrl').value.trim();
-            deploymentId = document.getElementById('deploymentId').value.trim();
-            
-            sessionStorage.setItem('datarobot_url', datarobotUrl);
-            sessionStorage.setItem('deployment_id', deploymentId);
-            
-            addMessage('✅ Configuration saved!', false);
-            toggleConfig();
-        }
-
         // Initialize
         function init() {
-            try {
-                const displayName = config.authProvider === 'okta' ? 'Okta User' : 'Entra ID User';
-                document.getElementById('userBadge').textContent = displayName;
-                
-                console.log('✅ ChatBot initialized successfully');
-                console.log('Access Token:', accessToken ? 'Present' : 'Missing');
-                console.log('DataRobot URL:', datarobotUrl);
-                console.log('Deployment ID:', deploymentId);
-            } catch (error) {
-                console.error('Init error:', error);
-                document.getElementById('userBadge').textContent = 'Error';
-                addMessage('Failed to initialize. Please try logging in again.', false, true);
-            }
+            console.log('✅ ChatBot initialized');
+            console.log('Access Token:', accessToken ? accessToken.substring(0, 30) + '...' : 'Missing');
+            console.log('DataRobot URL:', DATAROBOT_URL);
+            console.log('Deployment ID:', DEPLOYMENT_ID);
         }
 
         // Message handling
@@ -489,13 +397,6 @@
             const message = messageInput.value.trim();
             if (!message) return;
 
-            // Check configuration
-            if (!deploymentId) {
-                addMessage('⚠️ Please configure your Deployment ID in settings first.', false, true);
-                toggleConfig();
-                return;
-            }
-
             // Add user message
             addMessage(message, true);
             messageInput.value = '';
@@ -512,13 +413,9 @@
 
             try {
                 console.log('=== Making DataRobot Chat Completions API Call ===');
-                console.log('DataRobot URL:', datarobotUrl);
-                console.log('Deployment ID:', deploymentId);
-                console.log('Access Token:', accessToken.substring(0, 20) + '...');
-                console.log('Conversation History:', conversationHistory);
-
+                
                 // Call DataRobot chat completions endpoint
-                const apiUrl = `${datarobotUrl}/api/v2/deployments/${deploymentId}/chat/completions`;
+                const apiUrl = `${DATAROBOT_URL}/api/v2/deployments/${DEPLOYMENT_ID}/chat/completions`;
                 
                 const requestBody = {
                     model: "datarobot-deployed-llm",
@@ -527,22 +424,37 @@
 
                 console.log('Request URL:', apiUrl);
                 console.log('Request Body:', JSON.stringify(requestBody, null, 2));
+                console.log('Authorization:', 'Bearer ' + accessToken.substring(0, 20) + '...');
 
                 const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${accessToken}`,
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
-                    body: JSON.stringify(requestBody)
+                    body: JSON.stringify(requestBody),
+                    mode: 'cors',
+                    credentials: 'omit'
                 });
 
-                console.log('API Response Status:', response.status);
+                console.log('Response Status:', response.status);
+                console.log('Response Headers:', [...response.headers.entries()]);
 
                 if (!response.ok) {
                     const errorText = await response.text();
-                    console.error('API Error:', response.status, errorText);
-                    throw new Error(`API returned ${response.status}: ${errorText}`);
+                    console.error('API Error Response:', errorText);
+                    
+                    // Try to parse as JSON
+                    let errorMessage;
+                    try {
+                        const errorJson = JSON.parse(errorText);
+                        errorMessage = errorJson.detail || errorJson.message || errorText;
+                    } catch {
+                        errorMessage = errorText;
+                    }
+                    
+                    throw new Error(`API Error (${response.status}): ${errorMessage}`);
                 }
 
                 const data = await response.json();
@@ -562,20 +474,38 @@
                     });
                 } else if (data.message) {
                     assistantMessage = data.message;
+                } else if (data.text) {
+                    assistantMessage = data.text;
                 } else {
-                    assistantMessage = JSON.stringify(data, null, 2);
+                    assistantMessage = 'I received your message but got an unexpected response format.';
+                    console.log('Unexpected response format:', data);
                 }
 
                 addMessage(assistantMessage);
 
             } catch (error) {
-                console.error('❌ Error calling DataRobot API:', error);
+                console.error('❌ Complete Error Details:', error);
                 hideTypingIndicator();
                 
                 // Remove the last user message from history since it failed
                 conversationHistory.pop();
                 
-                addMessage(`Error: ${error.message}\n\nPlease check:\n- Your access token is valid\n- The deployment ID is correct\n- The DataRobot URL is correct`, false, true);
+                let errorMsg = error.message;
+                
+                // Provide helpful error messages
+                if (error.message.includes('CORS')) {
+                    errorMsg = `CORS Error: The DataRobot server is blocking requests from this domain.\n\nThis might be because:\n1. The JWT token configuration needs CORS enabled\n2. The deployment doesn't allow external access\n3. Additional headers are needed\n\nPlease contact your DataRobot administrator.`;
+                } else if (error.message.includes('Failed to fetch')) {
+                    errorMsg = `Network Error: Could not connect to DataRobot.\n\nPossible causes:\n1. CORS policy blocking the request\n2. Access token expired\n3. Network connectivity issue\n4. Deployment not accessible with JWT tokens`;
+                } else if (error.message.includes('405') || error.message.includes('Method Not Allowed')) {
+                    errorMsg = `Method Not Allowed: The endpoint doesn't accept POST requests or JWT tokens aren't enabled for this deployment.\n\nPlease verify:\n1. JWT tokens are enabled in System Configuration\n2. This deployment is in the allowed list\n3. The deployment supports chat completions`;
+                } else if (error.message.includes('401')) {
+                    errorMsg = `Authentication Error: Your access token is invalid or expired.\n\nPlease try logging out and logging in again.`;
+                } else if (error.message.includes('404')) {
+                    errorMsg = `Not Found: The deployment endpoint doesn't exist.\n\nPlease verify:\n1. Deployment ID is correct: ${DEPLOYMENT_ID}\n2. The deployment exists in staging\n3. You have access to this deployment`;
+                }
+                
+                addMessage(errorMsg, false, true);
             } finally {
                 sendButton.disabled = false;
                 messageInput.focus();
