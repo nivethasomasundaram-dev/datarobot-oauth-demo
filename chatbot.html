@@ -12,7 +12,7 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             height: 100vh;
             display: flex;
@@ -36,47 +36,35 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 20px;
-            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h1 {
             font-size: 24px;
-            font-weight: bold;
-            position: relative;
+            font-weight: 600;
         }
 
-        .chat-header .config-btn {
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 8px;
-            cursor: pointer;
+        .user-info {
             font-size: 14px;
-        }
-
-        .chat-header .config-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
+            opacity: 0.9;
         }
 
         .chat-messages {
             flex: 1;
-            padding: 20px;
             overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+            padding: 20px;
+            background: #f8f9fa;
         }
 
         .message {
+            margin-bottom: 16px;
             display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            animation: fadeIn 0.3s ease-in;
+            animation: slideIn 0.3s ease-out;
         }
 
-        @keyframes fadeIn {
+        @keyframes slideIn {
             from {
                 opacity: 0;
                 transform: translateY(10px);
@@ -88,460 +76,356 @@
         }
 
         .message.user {
-            flex-direction: row-reverse;
-        }
-
-        .message-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: white;
-            flex-shrink: 0;
-        }
-
-        .message.user .message-avatar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .message.assistant .message-avatar {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            justify-content: flex-end;
         }
 
         .message-content {
             max-width: 70%;
             padding: 12px 16px;
             border-radius: 18px;
-            line-height: 1.5;
             word-wrap: break-word;
         }
 
         .message.user .message-content {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            border-bottom-right-radius: 4px;
         }
 
         .message.assistant .message-content {
-            background: #f1f3f4;
+            background: white;
             color: #333;
-        }
-
-        .typing-indicator {
-            display: none;
-            align-items: center;
-            gap: 10px;
-            padding: 12px 16px;
-            background: #f1f3f4;
-            border-radius: 18px;
-            width: fit-content;
-        }
-
-        .typing-indicator.active {
-            display: flex;
-        }
-
-        .typing-indicator span {
-            width: 8px;
-            height: 8px;
-            background: #999;
-            border-radius: 50%;
-            animation: typing 1.4s infinite;
-        }
-
-        .typing-indicator span:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .typing-indicator span:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-
-        @keyframes typing {
-            0%, 60%, 100% {
-                transform: translateY(0);
-            }
-            30% {
-                transform: translateY(-10px);
-            }
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 4px;
         }
 
         .chat-input-container {
             padding: 20px;
-            background: #f8f9fa;
+            background: white;
             border-top: 1px solid #e0e0e0;
+        }
+
+        .chat-input-wrapper {
             display: flex;
             gap: 10px;
         }
 
-        .chat-input {
+        #messageInput {
             flex: 1;
             padding: 12px 16px;
             border: 2px solid #e0e0e0;
             border-radius: 25px;
-            font-size: 16px;
+            font-size: 14px;
             outline: none;
             transition: border-color 0.3s;
         }
 
-        .chat-input:focus {
+        #messageInput:focus {
             border-color: #667eea;
         }
 
-        .send-button {
-            padding: 12px 24px;
+        #sendButton {
+            padding: 12px 30px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
             border-radius: 25px;
             cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            transition: transform 0.2s;
+            font-size: 14px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
-        .send-button:hover {
-            transform: scale(1.05);
+        #sendButton:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
 
-        .send-button:active {
-            transform: scale(0.95);
-        }
-
-        .send-button:disabled {
+        #sendButton:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
 
+        .loading {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #667eea;
+            animation: pulse 1.4s infinite ease-in-out;
+            margin: 0 2px;
+        }
+
+        .loading:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes pulse {
+            0%, 80%, 100% {
+                opacity: 0.3;
+                transform: scale(0.8);
+            }
+            40% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
         .error-message {
-            background: #ff4444;
-            color: white;
-            padding: 10px;
+            background: #fee;
+            color: #c33;
+            padding: 12px;
             border-radius: 8px;
-            margin: 10px 20px;
-            text-align: center;
+            margin-bottom: 16px;
+            border-left: 4px solid #c33;
         }
 
         .config-panel {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            z-index: 1000;
-            width: 90%;
-            max-width: 500px;
-        }
-
-        .config-panel.active {
-            display: block;
-        }
-
-        .config-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-        }
-
-        .config-overlay.active {
-            display: block;
-        }
-
-        .config-panel h3 {
-            margin-bottom: 20px;
-            color: #333;
+            background: #f0f0f0;
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
         }
 
         .config-panel label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
+            font-size: 12px;
             color: #666;
-            font-weight: 500;
         }
 
         .config-panel input {
             width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: monospace;
         }
 
-        .config-panel button {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .config-panel button:hover {
-            opacity: 0.9;
-        }
-
-        .user-info {
-            position: absolute;
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.9);
+        .config-row {
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="config-overlay" id="configOverlay"></div>
-    <div class="config-panel" id="configPanel">
-        <h3>⚙️ Configuration</h3>
-        <label for="datarobotUrl">DataRobot URL:</label>
-        <input type="text" id="datarobotUrl" placeholder="https://dr-app-charts-master-daily.eks.delivery.drdev.io">
-        
-        <label for="deploymentId">Deployment ID:</label>
-        <input type="text" id="deploymentId" placeholder="Enter deployment ID">
-        
-        <button onclick="saveConfig()">Save Configuration</button>
-    </div>
-
     <div class="chat-container">
         <div class="chat-header">
-            <span class="user-info" id="userInfo"></span>
-            DataRobot AI Assistant
-            <button class="config-btn" onclick="openConfig()">⚙️ Config</button>
+            <h1>🤖 DataRobot ChatBot</h1>
+            <div class="user-info" id="userInfo">Loading...</div>
         </div>
-        
+
+        <div class="config-panel">
+            <div class="config-row">
+                <label>DataRobot URL:</label>
+                <input type="text" id="datarobotUrl" value="https://dr-app-charts-master-daily.eks.delivery.drdev.io" />
+            </div>
+            <div class="config-row">
+                <label>Deployment ID:</label>
+                <input type="text" id="deploymentId" value="6981fecac1ab901638754f1e" />
+            </div>
+            <div class="config-row">
+                <label>Lambda Proxy URL:</label>
+                <input type="text" id="lambdaUrl" value="https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api" />
+            </div>
+        </div>
+
         <div class="chat-messages" id="chatMessages">
             <div class="message assistant">
-                <div class="message-avatar">AI</div>
                 <div class="message-content">
-                    Hello! I'm your DataRobot AI Assistant. How can I help you today?
+                    👋 Hello! I'm your DataRobot AI assistant powered by Llama 3.2. How can I help you today?
                 </div>
             </div>
         </div>
-        
-        <div class="typing-indicator" id="typingIndicator">
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
-        
+
         <div class="chat-input-container">
-            <input 
-                type="text" 
-                class="chat-input" 
-                id="messageInput" 
-                placeholder="Type your message here..."
-                onkeypress="if(event.key === 'Enter') sendMessage()"
-            >
-            <button class="send-button" onclick="sendMessage()">Send</button>
+            <div class="chat-input-wrapper">
+                <input 
+                    type="text" 
+                    id="messageInput" 
+                    placeholder="Type your message here..."
+                    autocomplete="off"
+                />
+                <button id="sendButton">Send</button>
+            </div>
         </div>
     </div>
 
     <script>
         // Configuration
         const LAMBDA_PROXY_URL = 'https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api';
-        
-        // Default configuration - using drdev.io URL
-        let config = {
-            datarobotUrl: 'https://dr-app-charts-master-daily.eks.delivery.drdev.io',
-            deploymentId: '6983548095fdbe07fda6fede'
-        };
 
-        // Conversation history
+        // Get user info from session storage (set by callback.html)
+        const userEmail = sessionStorage.getItem('user_email');
+        const accessToken = sessionStorage.getItem('access_token');
+
+        // Display user info
+        document.getElementById('userInfo').textContent = userEmail || 'Guest';
+
+        // Check if user is authenticated
+        if (!accessToken) {
+            alert('You are not authenticated. Redirecting to login...');
+            window.location.href = 'index.html';
+        }
+
+        // Chat state
         let conversationHistory = [];
 
-        // Initialize the chat
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('ChatBot initialized');
-            
-            // Load config from sessionStorage
-            const savedConfig = sessionStorage.getItem('datarobot_config');
-            if (savedConfig) {
-                config = JSON.parse(savedConfig);
-            }
-            
-            // Get user info
-            const userInfo = sessionStorage.getItem('user_info');
-            if (userInfo) {
-                const user = JSON.parse(userInfo);
-                document.getElementById('userInfo').textContent = user.email || 'User';
-            }
-            
-            // Check if access token exists
-            const accessToken = sessionStorage.getItem('access_token');
-            if (!accessToken) {
-                showError('Not authenticated. Please log in first.');
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 2000);
-            }
-        });
+        // DOM elements
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const datarobotUrlInput = document.getElementById('datarobotUrl');
+        const deploymentIdInput = document.getElementById('deploymentId');
+        const lambdaUrlInput = document.getElementById('lambdaUrl');
 
-        function openConfig() {
-            document.getElementById('configPanel').classList.add('active');
-            document.getElementById('configOverlay').classList.add('active');
-            document.getElementById('datarobotUrl').value = config.datarobotUrl;
-            document.getElementById('deploymentId').value = config.deploymentId;
-        }
-
-        function saveConfig() {
-            config.datarobotUrl = document.getElementById('datarobotUrl').value;
-            config.deploymentId = document.getElementById('deploymentId').value;
-            
-            sessionStorage.setItem('datarobot_config', JSON.stringify(config));
-            
-            document.getElementById('configPanel').classList.remove('active');
-            document.getElementById('configOverlay').classList.remove('active');
-            
-            addMessage('Configuration updated successfully!', 'assistant');
-        }
-
-        document.getElementById('configOverlay').addEventListener('click', function() {
-            document.getElementById('configPanel').classList.remove('active');
-            document.getElementById('configOverlay').classList.remove('active');
-        });
-
-        function addMessage(text, sender = 'user') {
-            const messagesContainer = document.getElementById('chatMessages');
+        // Add message to chat
+        function addMessage(role, content) {
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}`;
+            messageDiv.className = `message ${role}`;
             
-            const avatar = document.createElement('div');
-            avatar.className = 'message-avatar';
-            avatar.textContent = sender === 'user' ? 'You' : 'AI';
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = content;
             
-            const content = document.createElement('div');
-            content.className = 'message-content';
-            content.textContent = text;
-            
-            messageDiv.appendChild(avatar);
-            messageDiv.appendChild(content);
-            messagesContainer.appendChild(messageDiv);
+            messageDiv.appendChild(contentDiv);
+            chatMessages.appendChild(messageDiv);
             
             // Scroll to bottom
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        function showTypingIndicator() {
-            document.getElementById('typingIndicator').classList.add('active');
+        // Show loading indicator
+        function showLoading() {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message assistant';
+            messageDiv.id = 'loading-message';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = '<span class="loading"></span><span class="loading"></span><span class="loading"></span>';
+            
+            messageDiv.appendChild(contentDiv);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        function hideTypingIndicator() {
-            document.getElementById('typingIndicator').classList.remove('active');
+        // Remove loading indicator
+        function removeLoading() {
+            const loadingMessage = document.getElementById('loading-message');
+            if (loadingMessage) {
+                loadingMessage.remove();
+            }
         }
 
+        // Show error message
         function showError(message) {
             const errorDiv = document.createElement('div');
             errorDiv.className = 'error-message';
-            errorDiv.textContent = message;
-            document.querySelector('.chat-container').insertBefore(errorDiv, document.querySelector('.chat-messages'));
-            
-            setTimeout(() => {
-                errorDiv.remove();
-            }, 5000);
+            errorDiv.textContent = `❌ Error: ${message}`;
+            chatMessages.appendChild(errorDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
+        // Send message to DataRobot via Lambda proxy
         async function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const message = input.value.trim();
-            
+            const message = messageInput.value.trim();
             if (!message) return;
-            
+
+            const datarobotUrl = datarobotUrlInput.value.trim();
+            const deploymentId = deploymentIdInput.value.trim();
+            const lambdaUrl = lambdaUrlInput.value.trim();
+
             // Add user message to chat
-            addMessage(message, 'user');
-            input.value = '';
-            
-            // Add to conversation history
+            addMessage('user', message);
+            messageInput.value = '';
+
+            // Update conversation history
             conversationHistory.push({
                 role: 'user',
                 content: message
             });
-            
-            // Show typing indicator
-            showTypingIndicator();
-            
+
+            // Show loading
+            showLoading();
+            sendButton.disabled = true;
+
             try {
-                const accessToken = sessionStorage.getItem('access_token');
-                
-                if (!accessToken) {
-                    throw new Error('No access token found. Please log in again.');
-                }
-                
-                console.log('Calling DataRobot via Lambda Proxy...');
-                console.log('DataRobot URL:', config.datarobotUrl);
-                console.log('Deployment ID:', config.deploymentId);
-                
-                // Call Lambda proxy which calls DataRobot
-                const response = await fetch(LAMBDA_PROXY_URL, {
+                console.log('Sending request to Lambda proxy...');
+                console.log('DataRobot URL:', datarobotUrl);
+                console.log('Deployment ID:', deploymentId);
+                console.log('Access Token:', accessToken.substring(0, 20) + '...');
+
+                const response = await fetch(lambdaUrl, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        access_token: accessToken,
-                        datarobot_url: config.datarobotUrl,
-                        endpoint: `/api/v2/deployments/${config.deploymentId}/chat/completions`,
-                        method: 'POST',
-                        request_body: {
-                            model: 'datarobot-deployed-llm',
-                            messages: conversationHistory
-                        }
+                        datarobotUrl: datarobotUrl,
+                        deploymentId: deploymentId,
+                        accessToken: accessToken,
+                        messages: conversationHistory
                     })
                 });
-                
-                console.log('Lambda Response Status:', response.status);
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(`Lambda Error (${response.status}): ${JSON.stringify(errorData)}`);
-                }
-                
+
+                console.log('Response status:', response.status);
                 const data = await response.json();
-                console.log('DataRobot Response:', data);
-                
-                hideTypingIndicator();
-                
-                // Extract assistant message
-                if (data.choices && data.choices[0] && data.choices[0].message) {
-                    const assistantMessage = data.choices[0].message.content;
-                    
-                    // Add to conversation history
-                    conversationHistory.push({
-                        role: 'assistant',
-                        content: assistantMessage
-                    });
-                    
-                    // Display response
-                    addMessage(assistantMessage, 'assistant');
-                } else {
-                    throw new Error('Unexpected response format from DataRobot');
+                console.log('Response data:', data);
+
+                removeLoading();
+
+                if (!response.ok) {
+                    throw new Error(`Lambda Error (${response.status}): ${JSON.stringify(data)}`);
                 }
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // Extract the assistant's message
+                let assistantMessage = 'Sorry, I could not generate a response.';
                 
+                if (data.choices && data.choices.length > 0) {
+                    assistantMessage = data.choices[0].message.content;
+                } else if (data.content) {
+                    assistantMessage = data.content;
+                } else if (data.message) {
+                    assistantMessage = data.message;
+                }
+
+                // Add assistant message to chat
+                addMessage('assistant', assistantMessage);
+
+                // Update conversation history
+                conversationHistory.push({
+                    role: 'assistant',
+                    content: assistantMessage
+                });
+
             } catch (error) {
                 console.error('Error:', error);
-                hideTypingIndicator();
+                removeLoading();
                 showError(error.message);
-                addMessage('Sorry, I encountered an error. Please try again.', 'assistant');
+            } finally {
+                sendButton.disabled = false;
+                messageInput.focus();
             }
         }
 
-        // Auto-focus on input
-        document.getElementById('messageInput').focus();
+        // Event listeners
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Focus input on load
+        messageInput.focus();
     </script>
 </body>
 </html>
