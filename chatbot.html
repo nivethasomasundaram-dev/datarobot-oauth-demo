@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataRobot Chatbot</title>
+    <title>AI Assistant</title>
     <style>
         * {
             margin: 0;
@@ -160,13 +160,13 @@
 <body>
     <div class="chat-container">
         <div class="chat-header">
-            <h1>🤖 DataRobot AI Assistant</h1>
+            <h1>AI Chat</h1>
         </div>
 
         <div class="chat-messages" id="chatMessages">
             <div class="message assistant">
                 <div class="message-content">
-                    👋 Hello! I'm your DataRobot AI assistant. How can I help you today?
+                    Hello! How can I help you today?
                 </div>
             </div>
         </div>
@@ -181,9 +181,9 @@
     </div>
 
     <script>
-        // Configuration - update these values
+        // Configuration
         const DATAROBOT_URL = 'https://dr-app-charts-master-daily.eks.delivery.drdev.io';
-        const DEPLOYMENT_ID = '69838d0fe84bcee579a5f549';  // Update this with a working deployment ID
+        const DEPLOYMENT_ID = '69838d0fe84bcee579a5f549';
         const API_GATEWAY_URL = 'https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api';
 
         let conversationHistory = [];
@@ -225,24 +225,20 @@
 
             if (!message) return;
 
-            // Get access token
             const accessToken = sessionStorage.getItem('access_token');
             if (!accessToken) {
-                addMessage('error', '❌ Please login first. Go to index.html to login with Okta.');
+                addMessage('error', 'Please login first');
                 return;
             }
 
-            // Add user message
             addMessage('user', message);
             conversationHistory.push({ role: 'user', content: message });
 
-            // Clear input and disable
             input.value = '';
             sendButton.disabled = true;
             showThinking();
 
             try {
-                // Call API Gateway
                 const response = await fetch(API_GATEWAY_URL, {
                     method: 'POST',
                     headers: {
@@ -270,7 +266,7 @@
 
             } catch (error) {
                 removeThinking();
-                addMessage('error', `❌ Error: ${error.message}`);
+                addMessage('error', `Error: ${error.message}`);
                 console.error('Chat error:', error);
             } finally {
                 sendButton.disabled = false;
