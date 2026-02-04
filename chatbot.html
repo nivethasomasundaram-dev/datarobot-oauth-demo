@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataRobot Chatbot - Direct API</title>
+    <title>DataRobot Chatbot - Lambda Proxy</title>
     <style>
         * {
             margin: 0;
@@ -32,7 +32,6 @@
             overflow: hidden;
         }
 
-        /* Main Chat Area */
         .chat-section {
             flex: 1;
             display: flex;
@@ -40,7 +39,6 @@
             border-right: 1px solid #e0e0e0;
         }
 
-        /* Diagnostics Panel */
         .diagnostics-section {
             width: 400px;
             display: flex;
@@ -75,7 +73,6 @@
             color: white;
         }
 
-        /* Chat Header */
         .chat-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -105,7 +102,6 @@
             background: rgba(255, 255, 255, 0.3);
         }
 
-        /* Configuration Panel */
         .config-panel {
             background: #f8f9fa;
             padding: 20px;
@@ -173,19 +169,13 @@
             background: #5a6268;
         }
 
-        /* Alert Banner */
         .alert-banner {
-            background: #fff3cd;
-            border-bottom: 2px solid #ffc107;
+            background: #d1ecf1;
+            border-bottom: 2px solid #17a2b8;
             padding: 15px 20px;
             display: flex;
             align-items: center;
             gap: 10px;
-        }
-
-        .alert-banner.info {
-            background: #d1ecf1;
-            border-color: #17a2b8;
         }
 
         .alert-icon {
@@ -198,7 +188,6 @@
             color: #333;
         }
 
-        /* Chat Messages */
         .chat-messages {
             flex: 1;
             overflow-y: auto;
@@ -274,7 +263,6 @@
             40% { transform: scale(1); }
         }
 
-        /* Chat Input */
         .chat-input {
             padding: 20px;
             background: white;
@@ -320,7 +308,6 @@
             cursor: not-allowed;
         }
 
-        /* Diagnostics Styles */
         .diagnostics-header {
             background: #343a40;
             color: white;
@@ -383,11 +370,6 @@
         .status-badge.error {
             background: #f8d7da;
             color: #721c24;
-        }
-
-        .status-badge.warning {
-            background: #fff3cd;
-            color: #856404;
         }
 
         .btn-diag {
@@ -478,7 +460,6 @@
             color: white;
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
@@ -492,17 +473,11 @@
             .diagnostics-section.collapsed {
                 max-height: 0;
             }
-
-            .toggle-diagnostics {
-                top: 10px;
-                right: 10px;
-            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Main Chat Section -->
         <div class="chat-section">
             <button class="toggle-diagnostics" onclick="toggleDiagnostics()">
                 🔧 <span id="toggleText">Show Diagnostics</span>
@@ -513,15 +488,13 @@
                 <button class="config-toggle" onclick="toggleConfig()">⚙️ Settings</button>
             </div>
 
-            <!-- Info Banner -->
-            <div class="alert-banner info">
+            <div class="alert-banner">
                 <div class="alert-icon">ℹ️</div>
                 <div class="alert-text">
-                    <strong>Direct API Mode:</strong> This chatbot calls DataRobot API directly from your browser (no Lambda proxy needed).
+                    <strong>Lambda Proxy Mode:</strong> All requests go through your Lambda function to avoid CORS issues.
                 </div>
             </div>
 
-            <!-- Configuration Panel -->
             <div class="config-panel" id="configPanel">
                 <div class="config-field">
                     <label>Deployment ID</label>
@@ -531,13 +504,16 @@
                     <label>DataRobot URL</label>
                     <input type="text" id="configDatarobotUrl" value="https://dr-app-charts-master-daily.eks.delivery.drdev.io">
                 </div>
+                <div class="config-field">
+                    <label>Lambda Proxy URL</label>
+                    <input type="text" id="configLambdaUrl" value="https://cotmuqxk67nszfb32cotmuqxk67.lambda-url.us-east-1.on.aws/">
+                </div>
                 <div class="config-buttons">
                     <button class="btn-save" onclick="saveConfig()">💾 Save Config</button>
                     <button class="btn-reset" onclick="resetConfig()">🔄 Reset</button>
                 </div>
             </div>
 
-            <!-- Chat Messages -->
             <div class="chat-messages" id="chatMessages">
                 <div class="message assistant">
                     <div class="message-content">
@@ -546,7 +522,6 @@
                 </div>
             </div>
 
-            <!-- Chat Input -->
             <div class="chat-input">
                 <div class="input-wrapper">
                     <input type="text" id="messageInput" placeholder="Type your message..." 
@@ -556,13 +531,11 @@
             </div>
         </div>
 
-        <!-- Diagnostics Panel -->
         <div class="diagnostics-section collapsed" id="diagnosticsPanel">
             <div class="diagnostics-header">
                 🔍 Diagnostics & Debug Info
             </div>
             <div class="diagnostics-content">
-                <!-- Token Info -->
                 <div class="diag-section">
                     <h3>📋 Your Token Info</h3>
                     <div id="tokenInfo">
@@ -572,13 +545,11 @@
                     </div>
                 </div>
 
-                <!-- Current Config -->
                 <div class="diag-section">
                     <h3>⚙️ Current Configuration</h3>
                     <div id="currentConfig"></div>
                 </div>
 
-                <!-- Deployment Check -->
                 <div class="diag-section">
                     <h3>🎯 Deployment Status</h3>
                     <div id="deploymentStatus">
@@ -588,7 +559,6 @@
                     </div>
                 </div>
 
-                <!-- Available Deployments -->
                 <div class="diag-section">
                     <h3>📦 Available Deployments</h3>
                     <button class="btn-diag" onclick="listAllDeployments()">
@@ -601,10 +571,10 @@
     </div>
 
     <script>
-        // Configuration
         let config = {
             deploymentId: '6981fecac1ab901638754f1e',
-            datarobotUrl: 'https://dr-app-charts-master-daily.eks.delivery.drdev.io'
+            datarobotUrl: 'https://dr-app-charts-master-daily.eks.delivery.drdev.io',
+            lambdaUrl: 'https://cotmuqxk67nszfb32cotmuqxk67.lambda-url.us-east-1.on.aws/'
         };
 
         let conversationHistory = [];
@@ -612,14 +582,12 @@
         let userOrgId = null;
         let allDeployments = [];
 
-        // Initialize
         window.onload = function() {
             loadConfig();
             checkToken();
             updateConfigDisplay();
         };
 
-        // Toggle Functions
         function toggleConfig() {
             const panel = document.getElementById('configPanel');
             panel.classList.toggle('visible');
@@ -637,19 +605,20 @@
             }
         }
 
-        // Configuration Management
         function loadConfig() {
             const saved = localStorage.getItem('chatbotConfig');
             if (saved) {
                 config = JSON.parse(saved);
                 document.getElementById('configDeploymentId').value = config.deploymentId;
                 document.getElementById('configDatarobotUrl').value = config.datarobotUrl;
+                document.getElementById('configLambdaUrl').value = config.lambdaUrl;
             }
         }
 
         function saveConfig() {
             config.deploymentId = document.getElementById('configDeploymentId').value;
             config.datarobotUrl = document.getElementById('configDatarobotUrl').value;
+            config.lambdaUrl = document.getElementById('configLambdaUrl').value;
             localStorage.setItem('chatbotConfig', JSON.stringify(config));
             updateConfigDisplay();
             addMessage('assistant', '✅ Configuration saved successfully!');
@@ -658,11 +627,13 @@
         function resetConfig() {
             config = {
                 deploymentId: '6981fecac1ab901638754f1e',
-                datarobotUrl: 'https://dr-app-charts-master-daily.eks.delivery.drdev.io'
+                datarobotUrl: 'https://dr-app-charts-master-daily.eks.delivery.drdev.io',
+                lambdaUrl: 'https://cotmuqxk67nszfb32cotmuqxk67.lambda-url.us-east-1.on.aws/'
             };
             localStorage.removeItem('chatbotConfig');
             document.getElementById('configDeploymentId').value = config.deploymentId;
             document.getElementById('configDatarobotUrl').value = config.datarobotUrl;
+            document.getElementById('configLambdaUrl').value = config.lambdaUrl;
             updateConfigDisplay();
             addMessage('assistant', '🔄 Configuration reset to defaults!');
         }
@@ -679,13 +650,16 @@
                     <div class="diag-value">${config.datarobotUrl}</div>
                 </div>
                 <div class="diag-row">
+                    <div class="diag-label">Lambda URL:</div>
+                    <div class="diag-value">${config.lambdaUrl}</div>
+                </div>
+                <div class="diag-row">
                     <div class="diag-label">API Mode:</div>
-                    <div class="diag-value"><span class="status-badge success">Direct API</span></div>
+                    <div class="diag-value"><span class="status-badge success">Lambda Proxy</span></div>
                 </div>
             `;
         }
 
-        // Token Management
         function checkToken() {
             const tokenDiv = document.getElementById('tokenInfo');
             accessToken = sessionStorage.getItem('access_token');
@@ -734,36 +708,48 @@
             }
         }
 
-        // Direct API call helper
-        async function callDataRobotAPI(endpoint, method = 'GET', body = null) {
+        async function callLambdaProxy(requestBody) {
             if (!accessToken) {
-                throw new Error('No access token found');
+                throw new Error('No access token found. Please login first.');
             }
 
-            const url = `${config.datarobotUrl}${endpoint}`;
-            const options = {
-                method: method,
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json'
-                }
-            };
-
-            if (body && method !== 'GET') {
-                options.body = JSON.stringify(body);
-            }
-
-            const response = await fetch(url, options);
+            // Ensure Lambda URL doesn't have double slashes
+            const lambdaUrl = config.lambdaUrl.replace(/\/+$/, '');
             
+            console.log('Calling Lambda proxy:', lambdaUrl);
+            console.log('Request body:', requestBody);
+
+            const response = await fetch(lambdaUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    accessToken: accessToken,
+                    datarobotUrl: config.datarobotUrl,
+                    ...requestBody
+                })
+            });
+
+            console.log('Lambda response status:', response.status);
+
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+                const errorText = await response.text();
+                console.error('Lambda error response:', errorText);
+                
+                let errorData;
+                try {
+                    errorData = JSON.parse(errorText);
+                } catch {
+                    errorData = { message: errorText };
+                }
+                
+                throw new Error(errorData.message || errorData.error || `HTTP ${response.status}`);
             }
 
             return await response.json();
         }
 
-        // Deployment Checking
         async function checkCurrentDeployment() {
             const statusDiv = document.getElementById('deploymentStatus');
 
@@ -782,7 +768,10 @@
             `;
 
             try {
-                const data = await callDataRobotAPI(`/api/v2/deployments/${config.deploymentId}/`);
+                const data = await callLambdaProxy({
+                    endpoint: `/api/v2/deployments/${config.deploymentId}/`,
+                    method: 'GET'
+                });
 
                 const depOrgId = data.organizationId || data.organization_id || 'Unknown';
                 const isMatch = depOrgId === userOrgId;
@@ -841,7 +830,11 @@
             listDiv.innerHTML = `<div style="text-align: center; padding: 10px;"><small>Loading...</small></div>`;
 
             try {
-                const data = await callDataRobotAPI('/api/v2/deployments/');
+                const data = await callLambdaProxy({
+                    endpoint: '/api/v2/deployments/',
+                    method: 'GET'
+                });
+
                 allDeployments = data.data || data || [];
 
                 if (allDeployments.length === 0) {
@@ -886,7 +879,6 @@
             addMessage('assistant', `✅ Switched to deployment: ${deploymentId}`);
         }
 
-        // Chat Functions
         function addMessage(role, content) {
             const messagesDiv = document.getElementById('chatMessages');
             const messageDiv = document.createElement('div');
@@ -928,29 +920,24 @@
 
             if (!message) return;
 
-            // Get access token
             accessToken = sessionStorage.getItem('access_token');
             if (!accessToken) {
                 addMessage('error', '❌ No access token found. Please login via Okta first.');
                 return;
             }
 
-            // Add user message
             addMessage('user', message);
             conversationHistory.push({ role: 'user', content: message });
 
-            // Clear input and disable button
             input.value = '';
             sendButton.disabled = true;
             showThinking();
 
             try {
-                // Call DataRobot API directly
-                const data = await callDataRobotAPI(
-                    `/api/v2/deployments/${config.deploymentId}/chat/completions`,
-                    'POST',
-                    { messages: conversationHistory }
-                );
+                const data = await callLambdaProxy({
+                    deploymentId: config.deploymentId,
+                    messages: conversationHistory
+                });
 
                 const aiMessage = data.choices?.[0]?.message?.content || data.message || 'No response received';
                 conversationHistory.push({ role: 'assistant', content: aiMessage });
