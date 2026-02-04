@@ -89,25 +89,25 @@
     <div class="container">
         <div class="logo-icon">🤖</div>
         <h1>DataRobot ChatBot</h1>
-        <p class="subtitle">Connect with your DataRobot account</p>
+        <p class="subtitle">Secure authentication with Okta</p>
         
         <button class="login-button" onclick="login()">
-            Login with Okta
+            🔐 Login with Okta
         </button>
         
         <div class="info">
             <strong>ℹ️ About this application:</strong><br>
-            This ChatBot connects to your DataRobot account using secure OAuth authentication via Okta.
+            This ChatBot connects to DataRobot's staging environment using OAuth authentication via Okta. Your access token will be used to communicate with AI deployments.
         </div>
     </div>
 
     <script>
-        // Configuration
+        // Configuration - Okta only, staging.datarobot.com
         const config = {
+            authProvider: 'okta',
             authDomain: 'agents-dell.oktapreview.com',
             clientId: '0oasm7gb2oAVsX8c81d7',
-            dataRobotUrl: 'https://dr-app-charts-master-daily.eks.delivery.drdev.io',
-            redirectUri: 'https://main.d1nmjhv80u87ew.amplifyapp.com/callback.html'
+            redirectUri: window.location.origin + '/callback.html'
         };
 
         function generateRandomString(length) {
@@ -119,7 +119,7 @@
         }
 
         function login() {
-            console.log('=== Starting OAuth Flow ===');
+            console.log('=== Starting Okta OAuth Flow ===');
             
             // Store configuration
             sessionStorage.setItem('chatbot_config', JSON.stringify(config));
@@ -128,7 +128,7 @@
             const state = generateRandomString(32);
             sessionStorage.setItem('oauth_state', state);
             
-            // Build authorization URL
+            // Build authorization URL for Okta
             const params = new URLSearchParams({
                 client_id: config.clientId,
                 response_type: 'code',
