@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataRobot ChatBot</title>
+    <title>DataRobot Chatbot with Diagnostics</title>
     <style>
         * {
             margin: 0;
@@ -18,24 +18,68 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 20px;
         }
 
-        .chat-container {
-            width: 90%;
-            max-width: 800px;
-            height: 90vh;
+        .container {
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 1200px;
+            height: 90vh;
             display: flex;
-            flex-direction: column;
             overflow: hidden;
         }
 
+        /* Main Chat Area */
+        .chat-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        /* Diagnostics Panel */
+        .diagnostics-section {
+            width: 400px;
+            display: flex;
+            flex-direction: column;
+            background: #f8f9fa;
+            overflow-y: auto;
+        }
+
+        .diagnostics-section.collapsed {
+            width: 0;
+            overflow: hidden;
+        }
+
+        .toggle-diagnostics {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            z-index: 10;
+            transition: all 0.3s;
+        }
+
+        .toggle-diagnostics:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Chat Header */
         .chat-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 20px;
+            padding: 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -46,33 +90,101 @@
             font-weight: 600;
         }
 
-        .user-info {
+        .config-toggle {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
             font-size: 14px;
-            opacity: 0.9;
+            transition: all 0.3s;
         }
 
+        .config-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Configuration Panel */
+        .config-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: none;
+        }
+
+        .config-panel.visible {
+            display: block;
+        }
+
+        .config-field {
+            margin-bottom: 15px;
+        }
+
+        .config-field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        .config-field input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .config-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-save {
+            flex: 1;
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-save:hover {
+            background: #218838;
+        }
+
+        .btn-reset {
+            flex: 1;
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-reset:hover {
+            background: #5a6268;
+        }
+
+        /* Chat Messages */
         .chat-messages {
             flex: 1;
             overflow-y: auto;
             padding: 20px;
-            background: #f8f9fa;
+            background: #fafafa;
         }
 
         .message {
-            margin-bottom: 16px;
+            margin-bottom: 20px;
             display: flex;
-            animation: slideIn 0.3s ease-out;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            align-items: flex-start;
         }
 
         .message.user {
@@ -82,12 +194,12 @@
         .message-content {
             max-width: 70%;
             padding: 12px 16px;
-            border-radius: 18px;
-            word-wrap: break-word;
+            border-radius: 12px;
+            line-height: 1.5;
         }
 
         .message.user .message-content {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #667eea;
             color: white;
             border-bottom-right-radius: 4px;
         }
@@ -95,17 +207,56 @@
         .message.assistant .message-content {
             background: white;
             color: #333;
-            border: 1px solid #e0e0e0;
             border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
-        .chat-input-container {
+        .message.error .message-content {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .thinking {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            background: white;
+            border-radius: 12px;
+            max-width: 150px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .thinking-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        /* Chat Input */
+        .chat-input {
             padding: 20px;
             background: white;
             border-top: 1px solid #e0e0e0;
         }
 
-        .chat-input-wrapper {
+        .input-wrapper {
             display: flex;
             gap: 10px;
         }
@@ -125,307 +276,687 @@
         }
 
         #sendButton {
-            padding: 12px 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #667eea;
             color: white;
             border: none;
+            padding: 12px 30px;
             border-radius: 25px;
             cursor: pointer;
-            font-size: 14px;
             font-weight: 600;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: background 0.3s;
         }
 
         #sendButton:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            background: #5568d3;
         }
 
         #sendButton:disabled {
-            opacity: 0.5;
+            background: #ccc;
             cursor: not-allowed;
         }
 
-        .loading {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #667eea;
-            animation: pulse 1.4s infinite ease-in-out;
-            margin: 0 2px;
+        /* Diagnostics Styles */
+        .diagnostics-header {
+            background: #343a40;
+            color: white;
+            padding: 20px;
+            font-weight: 600;
         }
 
-        .loading:nth-child(2) {
-            animation-delay: 0.2s;
+        .diagnostics-content {
+            padding: 20px;
         }
 
-        .loading:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-
-        @keyframes pulse {
-            0%, 80%, 100% {
-                opacity: 0.3;
-                transform: scale(0.8);
-            }
-            40% {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        .error-message {
-            background: #fee;
-            color: #c33;
-            padding: 12px;
+        .diag-section {
+            background: white;
             border-radius: 8px;
-            margin-bottom: 16px;
-            border-left: 4px solid #c33;
-        }
-
-        .config-panel {
-            background: #f0f0f0;
             padding: 15px;
-            border-bottom: 1px solid #ddd;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        .config-panel label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 12px;
-            color: #666;
-        }
-
-        .config-panel input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 12px;
-            font-family: monospace;
-        }
-
-        .config-row {
+        .diag-section h3 {
+            font-size: 14px;
+            color: #343a40;
             margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .diag-row {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+
+        .diag-label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .diag-value {
+            font-family: 'Courier New', monospace;
+            color: #333;
+            word-break: break-all;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .status-badge.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-badge.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .btn-diag {
+            width: 100%;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .btn-diag:hover {
+            background: #5568d3;
+        }
+
+        .deployment-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .deployment-item {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 8px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .deployment-item:hover {
+            border-color: #667eea;
+        }
+
+        .deployment-item.perfect-match {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .deployment-item.mismatch {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+
+        .deployment-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .deployment-id {
+            font-family: 'Courier New', monospace;
+            color: #666;
+            font-size: 10px;
+        }
+
+        .deployment-badges {
+            margin-top: 5px;
+        }
+
+        .mini-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 9px;
+            font-weight: 600;
+            margin-right: 4px;
+        }
+
+        .mini-badge.match {
+            background: #28a745;
+            color: white;
+        }
+
+        .mini-badge.mismatch {
+            background: #dc3545;
+            color: white;
+        }
+
+        .mini-badge.llm {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .diagnostics-section {
+                width: 100%;
+                max-height: 40vh;
+            }
+
+            .diagnostics-section.collapsed {
+                max-height: 0;
+            }
+
+            .toggle-diagnostics {
+                top: 10px;
+                right: 10px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="chat-container">
-        <div class="chat-header">
-            <h1>🤖 DataRobot ChatBot</h1>
-            <div class="user-info" id="userInfo">Loading...</div>
-        </div>
+    <div class="container">
+        <!-- Main Chat Section -->
+        <div class="chat-section">
+            <button class="toggle-diagnostics" onclick="toggleDiagnostics()">
+                🔧 <span id="toggleText">Show Diagnostics</span>
+            </button>
 
-        <div class="config-panel">
-            <div class="config-row">
-                <label>DataRobot URL:</label>
-                <input type="text" id="datarobotUrl" value="https://dr-app-charts-master-daily.eks.delivery.drdev.io" />
+            <div class="chat-header">
+                <h1>🤖 DataRobot Chatbot</h1>
+                <button class="config-toggle" onclick="toggleConfig()">⚙️ Settings</button>
             </div>
-            <div class="config-row">
-                <label>Deployment ID:</label>
-                <input type="text" id="deploymentId" value="6981fecac1ab901638754f1e" />
-            </div>
-            <div class="config-row">
-                <label>Lambda Proxy URL:</label>
-                <input type="text" id="lambdaUrl" value="https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api" />
-            </div>
-        </div>
 
-        <div class="chat-messages" id="chatMessages">
-            <div class="message assistant">
-                <div class="message-content">
-                    👋 Hello! I'm your DataRobot AI assistant powered by Llama 3.2. How can I help you today?
+            <!-- Configuration Panel -->
+            <div class="config-panel" id="configPanel">
+                <div class="config-field">
+                    <label>Deployment ID</label>
+                    <input type="text" id="configDeploymentId" value="6981fecac1ab901638754f1e">
+                </div>
+                <div class="config-field">
+                    <label>DataRobot URL</label>
+                    <input type="text" id="configDatarobotUrl" value="https://dr-app-charts-master-daily.eks.delivery.drdev.io">
+                </div>
+                <div class="config-field">
+                    <label>Lambda Proxy URL</label>
+                    <input type="text" id="configLambdaUrl" value="https://cotmuqxk67nszfb32cotmuqxk67.lambda-url.us-east-1.on.aws/">
+                </div>
+                <div class="config-buttons">
+                    <button class="btn-save" onclick="saveConfig()">💾 Save Config</button>
+                    <button class="btn-reset" onclick="resetConfig()">🔄 Reset</button>
+                </div>
+            </div>
+
+            <!-- Chat Messages -->
+            <div class="chat-messages" id="chatMessages">
+                <div class="message assistant">
+                    <div class="message-content">
+                        👋 Hello! I'm your DataRobot assistant. How can I help you today?
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Input -->
+            <div class="chat-input">
+                <div class="input-wrapper">
+                    <input type="text" id="messageInput" placeholder="Type your message..." 
+                           onkeypress="if(event.key==='Enter') sendMessage()">
+                    <button id="sendButton" onclick="sendMessage()">Send</button>
                 </div>
             </div>
         </div>
 
-        <div class="chat-input-container">
-            <div class="chat-input-wrapper">
-                <input 
-                    type="text" 
-                    id="messageInput" 
-                    placeholder="Type your message here..."
-                    autocomplete="off"
-                />
-                <button id="sendButton">Send</button>
+        <!-- Diagnostics Panel -->
+        <div class="diagnostics-section collapsed" id="diagnosticsPanel">
+            <div class="diagnostics-header">
+                🔍 Diagnostics & Debug Info
+            </div>
+            <div class="diagnostics-content">
+                <!-- Token Info -->
+                <div class="diag-section">
+                    <h3>📋 Your Token Info</h3>
+                    <div id="tokenInfo">
+                        <div style="text-align: center; padding: 20px; color: #666;">
+                            <small>Loading...</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Current Config -->
+                <div class="diag-section">
+                    <h3>⚙️ Current Configuration</h3>
+                    <div id="currentConfig"></div>
+                </div>
+
+                <!-- Deployment Check -->
+                <div class="diag-section">
+                    <h3>🎯 Deployment Status</h3>
+                    <div id="deploymentStatus">
+                        <button class="btn-diag" onclick="checkCurrentDeployment()">
+                            Check Current Deployment
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Available Deployments -->
+                <div class="diag-section">
+                    <h3>📦 Available Deployments</h3>
+                    <button class="btn-diag" onclick="listAllDeployments()">
+                        List All Deployments
+                    </button>
+                    <div id="deploymentList"></div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
         // Configuration
-        const LAMBDA_PROXY_URL = 'https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api';
+        let config = {
+            deploymentId: '6981fecac1ab901638754f1e',
+            datarobotUrl: 'https://dr-app-charts-master-daily.eks.delivery.drdev.io',
+            lambdaUrl: 'https://cotmuqxk67nszfb32cotmuqxk67.lambda-url.us-east-1.on.aws/'
+        };
 
-        // Get user info from session storage (set by callback.html)
-        const userEmail = sessionStorage.getItem('user_email');
-        const accessToken = sessionStorage.getItem('access_token');
-
-        // Display user info
-        document.getElementById('userInfo').textContent = userEmail || 'Guest';
-
-        // Check if user is authenticated
-        if (!accessToken) {
-            alert('You are not authenticated. Redirecting to login...');
-            window.location.href = 'index.html';
-        }
-
-        // Chat state
         let conversationHistory = [];
+        let accessToken = null;
+        let userOrgId = null;
+        let allDeployments = [];
 
-        // DOM elements
-        const chatMessages = document.getElementById('chatMessages');
-        const messageInput = document.getElementById('messageInput');
-        const sendButton = document.getElementById('sendButton');
-        const datarobotUrlInput = document.getElementById('datarobotUrl');
-        const deploymentIdInput = document.getElementById('deploymentId');
-        const lambdaUrlInput = document.getElementById('lambdaUrl');
+        // Initialize
+        window.onload = function() {
+            loadConfig();
+            checkToken();
+            updateConfigDisplay();
+        };
 
-        // Add message to chat
-        function addMessage(role, content) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${role}`;
-            
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'message-content';
-            contentDiv.textContent = content;
-            
-            messageDiv.appendChild(contentDiv);
-            chatMessages.appendChild(messageDiv);
-            
-            // Scroll to bottom
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+        // Toggle Functions
+        function toggleConfig() {
+            const panel = document.getElementById('configPanel');
+            panel.classList.toggle('visible');
         }
 
-        // Show loading indicator
-        function showLoading() {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message assistant';
-            messageDiv.id = 'loading-message';
+        function toggleDiagnostics() {
+            const panel = document.getElementById('diagnosticsPanel');
+            const text = document.getElementById('toggleText');
+            panel.classList.toggle('collapsed');
+            text.textContent = panel.classList.contains('collapsed') ? 'Show Diagnostics' : 'Hide Diagnostics';
             
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'message-content';
-            contentDiv.innerHTML = '<span class="loading"></span><span class="loading"></span><span class="loading"></span>';
-            
-            messageDiv.appendChild(contentDiv);
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        // Remove loading indicator
-        function removeLoading() {
-            const loadingMessage = document.getElementById('loading-message');
-            if (loadingMessage) {
-                loadingMessage.remove();
+            if (!panel.classList.contains('collapsed')) {
+                checkToken();
+                updateConfigDisplay();
             }
         }
 
-        // Show error message
-        function showError(message) {
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error-message';
-            errorDiv.textContent = `❌ Error: ${message}`;
-            chatMessages.appendChild(errorDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+        // Configuration Management
+        function loadConfig() {
+            const saved = localStorage.getItem('chatbotConfig');
+            if (saved) {
+                config = JSON.parse(saved);
+                document.getElementById('configDeploymentId').value = config.deploymentId;
+                document.getElementById('configDatarobotUrl').value = config.datarobotUrl;
+                document.getElementById('configLambdaUrl').value = config.lambdaUrl;
+            }
         }
 
-        // Send message to DataRobot via Lambda proxy
-        async function sendMessage() {
-            const message = messageInput.value.trim();
-            if (!message) return;
+        function saveConfig() {
+            config.deploymentId = document.getElementById('configDeploymentId').value;
+            config.datarobotUrl = document.getElementById('configDatarobotUrl').value;
+            config.lambdaUrl = document.getElementById('configLambdaUrl').value;
+            localStorage.setItem('chatbotConfig', JSON.stringify(config));
+            updateConfigDisplay();
+            addMessage('assistant', '✅ Configuration saved successfully!');
+        }
 
-            const datarobotUrl = datarobotUrlInput.value.trim();
-            const deploymentId = deploymentIdInput.value.trim();
-            const lambdaUrl = lambdaUrlInput.value.trim();
+        function resetConfig() {
+            config = {
+                deploymentId: '6981fecac1ab901638754f1e',
+                datarobotUrl: 'https://dr-app-charts-master-daily.eks.delivery.drdev.io',
+                lambdaUrl: 'https://cotmuqxk67nszfb32cotmuqxk67.lambda-url.us-east-1.on.aws/'
+            };
+            localStorage.removeItem('chatbotConfig');
+            document.getElementById('configDeploymentId').value = config.deploymentId;
+            document.getElementById('configDatarobotUrl').value = config.datarobotUrl;
+            document.getElementById('configLambdaUrl').value = config.lambdaUrl;
+            updateConfigDisplay();
+            addMessage('assistant', '🔄 Configuration reset to defaults!');
+        }
 
-            // Add user message to chat
-            addMessage('user', message);
-            messageInput.value = '';
+        function updateConfigDisplay() {
+            const configDiv = document.getElementById('currentConfig');
+            configDiv.innerHTML = `
+                <div class="diag-row">
+                    <div class="diag-label">Deployment ID:</div>
+                    <div class="diag-value">${config.deploymentId}</div>
+                </div>
+                <div class="diag-row">
+                    <div class="diag-label">DataRobot URL:</div>
+                    <div class="diag-value">${config.datarobotUrl}</div>
+                </div>
+                <div class="diag-row">
+                    <div class="diag-label">Lambda URL:</div>
+                    <div class="diag-value">${config.lambdaUrl}</div>
+                </div>
+            `;
+        }
 
-            // Update conversation history
-            conversationHistory.push({
-                role: 'user',
-                content: message
-            });
+        // Token Management
+        function checkToken() {
+            const tokenDiv = document.getElementById('tokenInfo');
+            accessToken = sessionStorage.getItem('access_token');
 
-            // Show loading
-            showLoading();
-            sendButton.disabled = true;
+            if (!accessToken) {
+                tokenDiv.innerHTML = `
+                    <div style="text-align: center; padding: 15px;">
+                        <span class="status-badge error">❌ No Token</span>
+                        <p style="margin-top: 10px; font-size: 11px; color: #666;">
+                            Please login via Okta to get an access token
+                        </p>
+                    </div>
+                `;
+                return;
+            }
 
             try {
-                console.log('Sending request to Lambda proxy...');
-                console.log('DataRobot URL:', datarobotUrl);
-                console.log('Deployment ID:', deploymentId);
-                console.log('Access Token:', accessToken.substring(0, 20) + '...');
+                const tokenParts = accessToken.split('.');
+                const payload = JSON.parse(atob(tokenParts[1]));
+                userOrgId = payload.datarobotOrgId;
+                const email = payload.email || 'N/A';
 
-                const response = await fetch(lambdaUrl, {
+                tokenDiv.innerHTML = `
+                    <div class="diag-row">
+                        <div class="diag-label">Status:</div>
+                        <div class="diag-value"><span class="status-badge success">✅ Valid</span></div>
+                    </div>
+                    <div class="diag-row">
+                        <div class="diag-label">Email:</div>
+                        <div class="diag-value">${email}</div>
+                    </div>
+                    <div class="diag-row">
+                        <div class="diag-label">Org ID:</div>
+                        <div class="diag-value">${userOrgId}</div>
+                    </div>
+                `;
+            } catch (error) {
+                tokenDiv.innerHTML = `
+                    <div style="text-align: center; padding: 15px;">
+                        <span class="status-badge error">❌ Invalid Token</span>
+                        <p style="margin-top: 10px; font-size: 11px; color: #666;">
+                            ${error.message}
+                        </p>
+                    </div>
+                `;
+            }
+        }
+
+        // Deployment Checking
+        async function checkCurrentDeployment() {
+            const statusDiv = document.getElementById('deploymentStatus');
+
+            if (!accessToken || !userOrgId) {
+                statusDiv.innerHTML = `
+                    <span class="status-badge error">❌ No token found</span>
+                    <p style="margin-top: 10px; font-size: 11px;">Please login first</p>
+                `;
+                return;
+            }
+
+            statusDiv.innerHTML = `
+                <div style="text-align: center; padding: 10px;">
+                    <small>Checking deployment...</small>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(config.lambdaUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        accessToken: accessToken,
+                        datarobotUrl: config.datarobotUrl,
+                        endpoint: `/api/v2/deployments/${config.deploymentId}/`,
+                        method: 'GET'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || `HTTP ${response.status}`);
+                }
+
+                const depOrgId = data.organizationId || data.organization_id || 'Unknown';
+                const isMatch = depOrgId === userOrgId;
+                const targetType = data.defaultPredictionServer?.targetType || data.targetType || 'Unknown';
+                const hasChat = data.capabilities?.includes('chat') || targetType.toLowerCase().includes('llm');
+
+                statusDiv.innerHTML = `
+                    <div class="diag-row">
+                        <div class="diag-label">Status:</div>
+                        <div class="diag-value">
+                            <span class="status-badge ${isMatch ? 'success' : 'error'}">
+                                ${isMatch ? '✅ Match' : '❌ Mismatch'}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="diag-row">
+                        <div class="diag-label">Your Org:</div>
+                        <div class="diag-value">${userOrgId}</div>
+                    </div>
+                    <div class="diag-row">
+                        <div class="diag-label">Deploy Org:</div>
+                        <div class="diag-value">${depOrgId}</div>
+                    </div>
+                    <div class="diag-row">
+                        <div class="diag-label">Type:</div>
+                        <div class="diag-value">${targetType}</div>
+                    </div>
+                    <div class="diag-row">
+                        <div class="diag-label">Chat Ready:</div>
+                        <div class="diag-value">
+                            <span class="status-badge ${isMatch && hasChat ? 'success' : 'error'}">
+                                ${isMatch && hasChat ? '✅ Yes' : '❌ No'}
+                            </span>
+                        </div>
+                    </div>
+                    <button class="btn-diag" onclick="checkCurrentDeployment()">🔄 Refresh</button>
+                `;
+
+            } catch (error) {
+                statusDiv.innerHTML = `
+                    <span class="status-badge error">❌ Error</span>
+                    <p style="margin-top: 10px; font-size: 11px; color: #721c24;">${error.message}</p>
+                    <button class="btn-diag" onclick="checkCurrentDeployment()">🔄 Try Again</button>
+                `;
+            }
+        }
+
+        async function listAllDeployments() {
+            const listDiv = document.getElementById('deploymentList');
+
+            if (!accessToken || !userOrgId) {
+                listDiv.innerHTML = `<p style="font-size: 11px; color: #721c24; margin-top: 10px;">Please login first</p>`;
+                return;
+            }
+
+            listDiv.innerHTML = `<div style="text-align: center; padding: 10px;"><small>Loading...</small></div>`;
+
+            try {
+                const response = await fetch(config.lambdaUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        accessToken: accessToken,
+                        datarobotUrl: config.datarobotUrl,
+                        endpoint: '/api/v2/deployments/',
+                        method: 'GET'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || `HTTP ${response.status}`);
+                }
+
+                allDeployments = data.data || data || [];
+
+                if (allDeployments.length === 0) {
+                    listDiv.innerHTML = `<p style="font-size: 11px; margin-top: 10px;">No deployments found</p>`;
+                    return;
+                }
+
+                const deploymentsHtml = allDeployments.map(dep => {
+                    const depOrgId = dep.organizationId || dep.organization_id || 'Unknown';
+                    const deploymentId = dep.id;
+                    const label = dep.label || dep.description || 'Unnamed';
+                    const targetType = dep.defaultPredictionServer?.targetType || dep.targetType || 'Unknown';
+                    const hasChat = dep.capabilities?.includes('chat') || targetType.toLowerCase().includes('llm');
+                    const isMatch = depOrgId === userOrgId;
+
+                    return `
+                        <div class="deployment-item ${isMatch && hasChat ? 'perfect-match' : !isMatch ? 'mismatch' : ''}"
+                             onclick="useDeployment('${deploymentId}')">
+                            <div class="deployment-name">${label}</div>
+                            <div class="deployment-id">${deploymentId}</div>
+                            <div class="deployment-badges">
+                                ${isMatch ? '<span class="mini-badge match">✅ ORG MATCH</span>' : '<span class="mini-badge mismatch">❌ MISMATCH</span>'}
+                                ${hasChat ? '<span class="mini-badge llm">🤖 LLM</span>' : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                listDiv.innerHTML = `<div class="deployment-list">${deploymentsHtml}</div>`;
+
+            } catch (error) {
+                listDiv.innerHTML = `<p style="font-size: 11px; color: #721c24; margin-top: 10px;">Error: ${error.message}</p>`;
+            }
+        }
+
+        function useDeployment(deploymentId) {
+            config.deploymentId = deploymentId;
+            document.getElementById('configDeploymentId').value = deploymentId;
+            localStorage.setItem('chatbotConfig', JSON.stringify(config));
+            updateConfigDisplay();
+            checkCurrentDeployment();
+            addMessage('assistant', `✅ Switched to deployment: ${deploymentId}`);
+        }
+
+        // Chat Functions
+        function addMessage(role, content) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+            messageDiv.innerHTML = `<div class="message-content">${content}</div>`;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function showThinking() {
+            const messagesDiv = document.getElementById('chatMessages');
+            const thinkingDiv = document.createElement('div');
+            thinkingDiv.className = 'message assistant';
+            thinkingDiv.id = 'thinking';
+            thinkingDiv.innerHTML = `
+                <div class="thinking">
+                    <div class="thinking-dots">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+            `;
+            messagesDiv.appendChild(thinkingDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function removeThinking() {
+            const thinkingDiv = document.getElementById('thinking');
+            if (thinkingDiv) {
+                thinkingDiv.remove();
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            // Get access token
+            accessToken = sessionStorage.getItem('access_token');
+            if (!accessToken) {
+                addMessage('error', '❌ No access token found. Please login via Okta first.');
+                return;
+            }
+
+            // Add user message
+            addMessage('user', message);
+            conversationHistory.push({ role: 'user', content: message });
+
+            // Clear input and disable button
+            input.value = '';
+            sendButton.disabled = true;
+            showThinking();
+
+            try {
+                const response = await fetch(config.lambdaUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        datarobotUrl: datarobotUrl,
-                        deploymentId: deploymentId,
                         accessToken: accessToken,
+                        datarobotUrl: config.datarobotUrl,
+                        deploymentId: config.deploymentId,
                         messages: conversationHistory
                     })
                 });
 
-                console.log('Response status:', response.status);
                 const data = await response.json();
-                console.log('Response data:', data);
-
-                removeLoading();
 
                 if (!response.ok) {
-                    throw new Error(`Lambda Error (${response.status}): ${JSON.stringify(data)}`);
+                    throw new Error(data.error || `HTTP ${response.status}: ${data.message || 'Unknown error'}`);
                 }
 
-                if (data.error) {
-                    throw new Error(data.error);
-                }
+                const aiMessage = data.choices?.[0]?.message?.content || data.message || 'No response received';
+                conversationHistory.push({ role: 'assistant', content: aiMessage });
 
-                // Extract the assistant's message
-                let assistantMessage = 'Sorry, I could not generate a response.';
-                
-                if (data.choices && data.choices.length > 0) {
-                    assistantMessage = data.choices[0].message.content;
-                } else if (data.content) {
-                    assistantMessage = data.content;
-                } else if (data.message) {
-                    assistantMessage = data.message;
-                }
-
-                // Add assistant message to chat
-                addMessage('assistant', assistantMessage);
-
-                // Update conversation history
-                conversationHistory.push({
-                    role: 'assistant',
-                    content: assistantMessage
-                });
+                removeThinking();
+                addMessage('assistant', aiMessage);
 
             } catch (error) {
-                console.error('Error:', error);
-                removeLoading();
-                showError(error.message);
+                removeThinking();
+                addMessage('error', `❌ Error: ${error.message}`);
+                console.error('Chat error:', error);
             } finally {
                 sendButton.disabled = false;
-                messageInput.focus();
+                input.focus();
             }
         }
-
-        // Event listeners
-        sendButton.addEventListener('click', sendMessage);
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-
-        // Focus input on load
-        messageInput.focus();
     </script>
 </body>
 </html>
