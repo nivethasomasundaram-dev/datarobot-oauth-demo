@@ -293,7 +293,7 @@
     <div class="chat-container">
         <div class="messages" id="messages">
             <div class="info-badge">
-                🔗 Connected to: <strong>https://staging.datarobot.com</strong><br>
+                🔗 Connected via Lambda Proxy to: <strong>https://staging.datarobot.com</strong><br>
                 📦 Deployment ID: <strong>6977755b9d4b63aa1fdea8a2</strong>
             </div>
             <div class="welcome-message">
@@ -318,7 +318,8 @@
     </div>
 
     <script>
-        // FIXED CONFIGURATION - Using staging.datarobot.com
+        // CONFIGURATION - Using Lambda Proxy
+        const LAMBDA_PROXY_URL = 'https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api';
         const DATAROBOT_URL = 'https://staging.datarobot.com';
         const DEPLOYMENT_ID = '6977755b9d4b63aa1fdea8a2';
 
@@ -341,9 +342,10 @@
         // Initialize
         function init() {
             console.log('✅ ChatBot initialized');
-            console.log('Access Token:', accessToken ? accessToken.substring(0, 30) + '...' : 'Missing');
+            console.log('Lambda Proxy URL:', LAMBDA_PROXY_URL);
             console.log('DataRobot URL:', DATAROBOT_URL);
             console.log('Deployment ID:', DEPLOYMENT_ID);
+            console.log('Access Token:', accessToken ? accessToken.substring(0, 30) + '...' : 'Missing');
         }
 
         // Message handling
@@ -412,53 +414,54 @@
             showTypingIndicator();
 
             try {
-                console.log('=== Making DataRobot Chat Completions API Call ===');
+                console.log('=== Calling DataRobot via Lambda Proxy ===');
                 
-                // Call DataRobot chat completions endpoint
-                const apiUrl = `${DATAROBOT_URL}/api/v2/deployments/${DEPLOYMENT_ID}/chat/completions`;
-                
-                const requestBody = {
-                    model: "datarobot-deployed-llm",
-                    messages: conversationHistory
+                // Prepare request for Lambda proxy
+                const lambdaRequestBody = {
+                    access_token: accessToken,
+                    datarobot_url: DATAROBOT_URL,
+                    endpoint: `/api/v2/deployments/${DEPLOYMENT_ID}/chat/completions`,
+                    method: 'POST',
+                    request_body: {
+                        model: "datarobot-deployed-llm",
+                        messages: conversationHistory
+                    }
                 };
 
-                console.log('Request URL:', apiUrl);
-                console.log('Request Body:', JSON.stringify(requestBody, null, 2));
-                console.log('Authorization:', 'Bearer ' + accessToken.substring(0, 20) + '...');
-
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${accessToken}`,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(requestBody),
-                    mode: 'cors',
-                    credentials: 'omit'
+                console.log('Lambda Request:', {
+                    url: LAMBDA_PROXY_URL,
+                    endpoint: lambdaRequestBody.endpoint,
+                    messages: conversationHistory
                 });
 
-                console.log('Response Status:', response.status);
-                console.log('Response Headers:', [...response.headers.entries()]);
+                // Call Lambda proxy
+                const response = await fetch(LAMBDA_PROXY_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(lambdaRequestBody)
+                });
+
+                console.log('Lambda Response Status:', response.status);
 
                 if (!response.ok) {
                     const errorText = await response.text();
-                    console.error('API Error Response:', errorText);
+                    console.error('Lambda Error Response:', errorText);
                     
-                    // Try to parse as JSON
                     let errorMessage;
                     try {
                         const errorJson = JSON.parse(errorText);
-                        errorMessage = errorJson.detail || errorJson.message || errorText;
+                        errorMessage = errorJson.error || errorJson.detail || errorText;
                     } catch {
                         errorMessage = errorText;
                     }
                     
-                    throw new Error(`API Error (${response.status}): ${errorMessage}`);
+                    throw new Error(`Lambda Error (${response.status}): ${errorMessage}`);
                 }
 
                 const data = await response.json();
-                console.log('API Response Data:', data);
+                console.log('DataRobot Response via Lambda:', data);
 
                 hideTypingIndicator();
 
@@ -484,26 +487,13 @@
                 addMessage(assistantMessage);
 
             } catch (error) {
-                console.error('❌ Complete Error Details:', error);
+                console.error('❌ Error:', error);
                 hideTypingIndicator();
                 
                 // Remove the last user message from history since it failed
                 conversationHistory.pop();
                 
-                let errorMsg = error.message;
-                
-                // Provide helpful error messages
-                if (error.message.includes('CORS')) {
-                    errorMsg = `CORS Error: The DataRobot server is blocking requests from this domain.\n\nThis might be because:\n1. The JWT token configuration needs CORS enabled\n2. The deployment doesn't allow external access\n3. Additional headers are needed\n\nPlease contact your DataRobot administrator.`;
-                } else if (error.message.includes('Failed to fetch')) {
-                    errorMsg = `Network Error: Could not connect to DataRobot.\n\nPossible causes:\n1. CORS policy blocking the request\n2. Access token expired\n3. Network connectivity issue\n4. Deployment not accessible with JWT tokens`;
-                } else if (error.message.includes('405') || error.message.includes('Method Not Allowed')) {
-                    errorMsg = `Method Not Allowed: The endpoint doesn't accept POST requests or JWT tokens aren't enabled for this deployment.\n\nPlease verify:\n1. JWT tokens are enabled in System Configuration\n2. This deployment is in the allowed list\n3. The deployment supports chat completions`;
-                } else if (error.message.includes('401')) {
-                    errorMsg = `Authentication Error: Your access token is invalid or expired.\n\nPlease try logging out and logging in again.`;
-                } else if (error.message.includes('404')) {
-                    errorMsg = `Not Found: The deployment endpoint doesn't exist.\n\nPlease verify:\n1. Deployment ID is correct: ${DEPLOYMENT_ID}\n2. The deployment exists in staging\n3. You have access to this deployment`;
-                }
+                let errorMsg = `Error: ${error.message}\n\nPlease check:\n- Your access token is valid\n- The Lambda proxy is configured correctly\n- The deployment ID is correct`;
                 
                 addMessage(errorMsg, false, true);
             } finally {
