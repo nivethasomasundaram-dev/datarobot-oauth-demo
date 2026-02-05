@@ -37,19 +37,11 @@
             color: white;
             padding: 20px;
             border-radius: 15px 15px 0 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
 
         .chat-header h1 {
             font-size: 24px;
             font-weight: 600;
-        }
-
-        .user-info {
-            font-size: 12px;
-            opacity: 0.9;
         }
 
         .chat-messages {
@@ -90,13 +82,6 @@
             background: #fee;
             color: #c33;
             border: 1px solid #fcc;
-        }
-
-        .message.system .message-content {
-            background: #e3f2fd;
-            color: #1565c0;
-            font-size: 13px;
-            max-width: 100%;
         }
 
         .thinking {
@@ -176,7 +161,6 @@
     <div class="chat-container">
         <div class="chat-header">
             <h1>AI Chat</h1>
-            <div class="user-info" id="userInfo">Loading...</div>
         </div>
 
         <div class="chat-messages" id="chatMessages">
@@ -200,43 +184,9 @@
         // Configuration
         const DATAROBOT_URL = 'https://dr-app-charts-master-daily.eks.delivery.drdev.io';
         const DEPLOYMENT_ID = '6980e503e50268ac3a3bf1ea';
+        const API_GATEWAY_URL = 'https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api';
 
         let conversationHistory = [];
-        let userVerified = false;
-
-        // Verify user and load account info on page load
-        window.onload = async function() {
-            const token = sessionStorage.getItem('access_token');
-            if (!token) {
-                document.getElementById('userInfo').textContent = '❌ Not logged in';
-                addMessage('error', 'Please login first to use the chatbot');
-                return;
-            }
-
-            try {
-                // Use /account/info/ endpoint to verify JWT token
-                const response = await fetch(`${DATAROBOT_URL}/account/info/`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    const username = data.username || data.email || 'User';
-                    document.getElementById('userInfo').textContent = `✓ ${username}`;
-                    userVerified = true;
-                    addMessage('system', `✓ Authenticated as ${username}`);
-                } else {
-                    document.getElementById('userInfo').textContent = '⚠ Token invalid';
-                    addMessage('error', 'Your session has expired. Please login again.');
-                }
-            } catch (error) {
-                document.getElementById('userInfo').textContent = '⚠ Verification failed';
-                console.error('Account verification error:', error);
-            }
-        };
 
         function addMessage(role, content) {
             const messagesDiv = document.getElementById('chatMessages');
@@ -281,11 +231,6 @@
                 return;
             }
 
-            if (!userVerified) {
-                addMessage('error', 'Please wait for authentication to complete');
-                return;
-            }
-
             addMessage('user', message);
             conversationHistory.push({ role: 'user', content: message });
 
@@ -294,21 +239,22 @@
             showThinking();
 
             try {
-                // Use /chat/completions endpoint for AI chat
-                const response = await fetch(`${DATAROBOT_URL}/api/v2/deployments/${DEPLOYMENT_ID}/chat/completions`, {
+                const response = await fetch(API_GATEWAY_URL, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${accessToken}`
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
+                        access_token: accessToken,
+                        datarobot_url: DATAROBOT_URL,
+                        deployment_id: DEPLOYMENT_ID,
                         messages: conversationHistory
                     })
                 });
 
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(errorData.detail || errorData.message || `HTTP ${response.status}`);
+                    throw new Error(errorData.message || `HTTP ${response.status}`);
                 }
 
                 const data = await response.json();
@@ -322,13 +268,6 @@
                 removeThinking();
                 addMessage('error', `Error: ${error.message}`);
                 console.error('Chat error:', error);
-                
-                // If token expired, suggest re-login
-                if (error.message.includes('401') || error.message.includes('Unauthorized')) {
-                    userVerified = false;
-                    document.getElementById('userInfo').textContent = '⚠ Session expired';
-                    addMessage('system', 'Your session has expired. Please refresh and login again.');
-                }
             } finally {
                 sendButton.disabled = false;
                 input.focus();
