@@ -615,8 +615,11 @@
                 <input 
                     type="text" 
                     id="gatewayInput" 
-                    placeholder="https://your-lambda-url.execute-api.us-east-1.amazonaws.com/api"
+                    placeholder="https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api"
                 >
+                <small style="color: #6c757d; display: block; margin-top: 5px;">
+                    ℹ️ Your AWS Lambda API Gateway endpoint URL
+                </small>
             </div>
             
             <div class="config-item">
@@ -657,21 +660,21 @@
                 name: 'Staging',
                 baseUrl: 'https://staging.datarobot.com',
                 deploymentId: '',
-                apiGateway: '',
+                apiGateway: 'https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api',
                 apiKey: ''
             },
             eks: {
                 name: 'EKS Regression',
                 baseUrl: 'https://dr-app-charts-master-daily.eks.delivery.drdev.io',
                 deploymentId: '',
-                apiGateway: '',
+                apiGateway: 'https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api',
                 apiKey: ''
             },
             gke: {
                 name: 'GKE Regression',
                 baseUrl: 'https://dr-app-charts-master-daily.gke.delivery.drdev.io',
                 deploymentId: '',
-                apiGateway: '',
+                apiGateway: 'https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api',
                 apiKey: ''
             }
         };
@@ -754,76 +757,119 @@
         async function fetchDeployments() {
             console.log('🔄 Fetching deployments...');
             
-            const apiKey = document.getElementById('apiKeyInput').value || currentConfig.apiKey;
+            const apiKeyInput = document.getElementById('apiKeyInput').value.trim();
+            const gatewayInput = document.getElementById('gatewayInput').value.trim();
             const accessToken = sessionStorage.getItem('access_token');
             const errorDiv = document.getElementById('deploymentError');
             const refreshBtn = document.querySelector('.refresh-btn');
             
+            // Update current config with form values
+            const apiKey = apiKeyInput || currentConfig.apiKey;
+            const gateway = gatewayInput || currentConfig.apiGateway;
+            
             // Clear previous errors
             errorDiv.textContent = '';
             errorDiv.classList.remove('show');
+            errorDiv.style.color = '#dc3545';
+            
+            console.log('Auth available:', { hasToken: !!accessToken, hasApiKey: !!apiKey });
+            console.log('Gateway URL:', gateway);
+            console.log('DataRobot URL:', currentConfig.baseUrl);
             
             // Validate inputs
             if (!apiKey && !accessToken) {
                 errorDiv.textContent = '❌ Please provide an API Key or ensure you\'re logged in with JWT';
                 errorDiv.classList.add('show');
+                console.error('No authentication available');
                 return;
             }
             
-            if (!currentConfig.apiGateway) {
-                errorDiv.textContent = '❌ Please configure API Gateway URL first';
+            if (!gateway) {
+                errorDiv.textContent = '❌ Please enter API Gateway URL first (e.g., https://xxxxx.execute-api.us-east-1.amazonaws.com/api)';
                 errorDiv.classList.add('show');
+                console.error('No API Gateway URL configured');
                 return;
             }
             
             // Show loading
             refreshBtn.disabled = true;
-            refreshBtn.innerHTML = '🔄 Loading... <span class="loading-spinner"></span>';
+            refreshBtn.innerHTML = '⏳ Loading...';
             
             try {
-                console.log('Making request to Lambda:', currentConfig.apiGateway);
-                console.log('DataRobot URL:', currentConfig.baseUrl);
-                console.log('Auth method:', accessToken ? 'JWT Token' : 'API Key');
+                const requestBody = {
+                    action: 'list_deployments',
+                    datarobotUrl: currentConfig.baseUrl,
+                    limit: 100,
+                    offset: 0
+                };
                 
-                // CRITICAL: Route through Lambda, not directly to DataRobot
-                const response = await fetch(currentConfig.apiGateway, {
+                // Add authentication
+                if (accessToken) {
+                    requestBody.accessToken = accessToken;
+                    console.log('Using JWT token authentication');
+                } else if (apiKey) {
+                    requestBody.apiKey = apiKey;
+                    console.log('Using API key authentication');
+                }
+                
+                console.log('Making request to Lambda:', gateway);
+                console.log('Request payload:', { ...requestBody, accessToken: accessToken ? '[REDACTED]' : undefined, apiKey: apiKey ? '[REDACTED]' : undefined });
+                
+                const response = await fetch(gateway, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        action: 'list_deployments',
-                        datarobotUrl: currentConfig.baseUrl,
-                        accessToken: accessToken,  // JWT token
-                        apiKey: apiKey,            // API key fallback
-                        limit: 100,
-                        offset: 0
-                    })
+                    body: JSON.stringify(requestBody)
                 });
                 
                 console.log('Response status:', response.status);
+                console.log('Response headers:', Object.fromEntries(response.headers.entries()));
                 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || `HTTP ${response.status}`);
+                const responseText = await response.text();
+                console.log('Response body (raw):', responseText);
+                
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('Failed to parse response as JSON:', parseError);
+                    throw new Error(`Invalid JSON response: ${responseText.substring(0, 200)}`);
                 }
                 
-                const data = await response.json();
-                console.log('✅ Deployments fetched:', data);
+                if (!response.ok) {
+                    throw new Error(data.message || data.error || `HTTP ${response.status}`);
+                }
                 
-                if (data.success && data.deployments) {
+                console.log('✅ Deployments fetched successfully:', data);
+                
+                if (data.success && data.deployments && Array.isArray(data.deployments)) {
                     populateDeploymentSelector(data.deployments);
                     errorDiv.textContent = `✅ Found ${data.count} deployment(s)`;
                     errorDiv.style.color = '#28a745';
                     errorDiv.classList.add('show');
+                    
+                    // Save API key to config if it was just entered
+                    if (apiKeyInput) {
+                        currentConfig.apiKey = apiKeyInput;
+                    }
                 } else {
-                    throw new Error('Invalid response format');
+                    console.error('Unexpected response format:', data);
+                    throw new Error('Invalid response format: missing deployments array');
                 }
                 
             } catch (error) {
                 console.error('❌ Failed to fetch deployments:', error);
                 errorDiv.textContent = `❌ Error: ${error.message}`;
                 errorDiv.classList.add('show');
+                
+                // Provide helpful debugging info
+                console.error('Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    gateway: gateway,
+                    hasAuth: !!(accessToken || apiKey)
+                });
             } finally {
                 refreshBtn.disabled = false;
                 refreshBtn.innerHTML = '🔄 Refresh List';
@@ -854,18 +900,28 @@
         }
         
         function saveConfig() {
-            currentConfig.apiGateway = document.getElementById('gatewayInput').value;
-            currentConfig.apiKey = document.getElementById('apiKeyInput').value;
-            currentConfig.deploymentId = document.getElementById('deploymentSelect').value;
+            const gateway = document.getElementById('gatewayInput').value.trim();
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            const deploymentId = document.getElementById('deploymentSelect').value;
+            
+            // Update config
+            currentConfig.apiGateway = gateway;
+            currentConfig.apiKey = apiKey;
+            currentConfig.deploymentId = deploymentId;
             
             // Validate
             if (!currentConfig.apiGateway) {
-                alert('⚠️ Please provide an API Gateway URL');
+                alert('⚠️ Please provide an API Gateway URL.\n\nYour Lambda URL should look like:\nhttps://xxxxx.execute-api.us-east-1.amazonaws.com/api');
                 return;
             }
             
+            if (!currentConfig.apiKey) {
+                const proceed = confirm('⚠️ No API Key provided.\n\nYou can either:\n1. Provide an API key to list deployments\n2. Manually enter a deployment ID later\n\nProceed without API key?');
+                if (!proceed) return;
+            }
+            
             if (!currentConfig.deploymentId) {
-                alert('⚠️ Please select a deployment');
+                alert('⚠️ Please select a deployment.\n\nClick "Refresh List" to load available deployments, or save this configuration and manually enter a deployment ID later.');
                 return;
             }
             
@@ -876,7 +932,10 @@
             updateUIFromConfig();
             toggleConfig();
             
-            addMessage('bot', `✅ Configuration saved! Using ${currentConfig.name} environment with deployment: ${document.getElementById('deploymentSelect').selectedOptions[0].text}`);
+            const selectedOption = document.getElementById('deploymentSelect').selectedOptions[0];
+            const deploymentName = selectedOption ? selectedOption.text : currentConfig.deploymentId;
+            
+            addMessage('bot', `✅ Configuration saved!\n\n📍 Environment: ${currentConfig.name}\n🎯 Deployment: ${deploymentName}\n🔗 Gateway: ${currentConfig.apiGateway}`);
         }
         
         function toggleConfig() {
