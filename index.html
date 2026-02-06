@@ -3,772 +3,504 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataRobot AI Assistant</title>
+    <title>DataRobot AI Assistant - Login</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
-        }
-
-        .main-container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 40px;
-            max-width: 500px;
-            width: 100%;
-            text-align: center;
-        }
-
-        .app-icon {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-        }
-
-        h1 {
-            color: #2d3748;
-            margin-bottom: 10px;
-            font-size: 28px;
-        }
-
-        .subtitle {
-            color: #718096;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-
-        .login-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 16px 32px;
-            font-size: 16px;
-            font-weight: 600;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-        }
-
-        .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .about-section {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #e2e8f0;
-        }
-
-        .about-section h3 {
-            color: #2d3748;
-            font-size: 16px;
-            margin-bottom: 12px;
-        }
-
-        .feature-list {
-            text-align: left;
-            color: #718096;
-            font-size: 13px;
-            line-height: 1.8;
-        }
-
-        .feature-list li {
-            margin-bottom: 8px;
-        }
-
-        /* Chat Container (Hidden initially) */
-        .chat-container {
-            display: none;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            width: 100%;
-            max-width: 800px;
-            height: 90vh;
-            flex-direction: column;
+            position: relative;
             overflow: hidden;
         }
 
-        .chat-container.active {
-            display: flex;
+        .bg-shape {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: float 20s infinite ease-in-out;
         }
 
-        .chat-header {
+        .bg-shape:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            top: -100px;
+            left: -100px;
+            animation-delay: 0s;
+        }
+
+        .bg-shape:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            bottom: -50px;
+            right: -50px;
+            animation-delay: 7s;
+        }
+
+        .bg-shape:nth-child(3) {
+            width: 150px;
+            height: 150px;
+            top: 50%;
+            right: 10%;
+            animation-delay: 14s;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-50px) rotate(180deg);
+            }
+        }
+        
+        .container {
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
+            padding: 60px 50px;
+            max-width: 550px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            animation: slideUp 0.6s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .logo-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 25px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
+            border-radius: 25px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            animation: bounce 2s infinite;
         }
 
-        .chat-header h1 {
-            font-size: 24px;
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 35px;
+            line-height: 1.6;
+        }
+
+        .auth-providers {
+            margin-bottom: 30px;
+        }
+
+        .provider-title {
+            color: #333;
+            font-size: 14px;
             font-weight: 600;
-            color: white;
-            margin: 0;
+            margin-bottom: 15px;
+            text-align: left;
         }
-
-        .header-buttons {
+        
+        .login-button {
+            width: 100%;
+            color: white;
+            border: none;
+            padding: 18px;
+            font-size: 17px;
+            font-weight: 600;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
             display: flex;
+            align-items: center;
+            justify-content: center;
             gap: 10px;
+            margin-bottom: 12px;
+            position: relative;
         }
 
-        .settings-btn, .jwt-toggle-header-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
+        .login-button:hover:not(:disabled) {
+            transform: translateY(-3px);
+        }
+
+        .login-button:active:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        .login-button.okta {
+            background: linear-gradient(135deg, #007dc1 0%, #00558c 100%);
+            box-shadow: 0 8px 25px rgba(0, 125, 193, 0.4);
+        }
+
+        .login-button.okta:hover:not(:disabled) {
+            box-shadow: 0 12px 35px rgba(0, 125, 193, 0.6);
+        }
+
+        .login-button.entraid {
+            background: linear-gradient(135deg, #0078d4 0%, #005a9e 100%);
+            box-shadow: 0 8px 25px rgba(0, 120, 212, 0.4);
+        }
+
+        .login-button.entraid:hover:not(:disabled) {
+            box-shadow: 0 12px 35px rgba(0, 120, 212, 0.6);
+        }
+
+        .login-button:disabled {
+            background: linear-gradient(135deg, #ccc 0%, #999 100%);
+            cursor: not-allowed;
+            box-shadow: none;
+            opacity: 0.6;
+        }
+
+        .coming-soon-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ff9800;
             color: white;
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background 0.3s;
+            font-size: 10px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(255, 152, 0, 0.4);
         }
 
-        .settings-btn:hover, .jwt-toggle-header-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            background: #f7fafc;
-        }
-
-        .message {
-            margin-bottom: 16px;
+        .provider-icon {
+            width: 24px;
+            height: 24px;
             display: flex;
-            gap: 12px;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
         }
-
-        .message.user {
-            flex-direction: row-reverse;
-        }
-
-        .message-content {
-            max-width: 70%;
-            padding: 12px 16px;
-            border-radius: 12px;
-            line-height: 1.5;
-        }
-
-        .message.user .message-content {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .message.assistant .message-content {
-            background: white;
-            color: #2d3748;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .chat-input-container {
+        
+        .info {
+            margin-top: 35px;
             padding: 20px;
-            background: white;
-            border-top: 1px solid #e2e8f0;
-        }
-
-        .chat-input-wrapper {
-            display: flex;
-            gap: 12px;
-        }
-
-        .chat-input {
-            flex: 1;
-            padding: 12px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
             font-size: 14px;
-            outline: none;
-            transition: border-color 0.3s;
+            color: #666;
+            text-align: left;
+            border: 1px solid #e0e0e0;
         }
 
-        .chat-input:focus {
-            border-color: #667eea;
+        .info strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 8px;
+            font-size: 15px;
         }
 
-        .send-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 24px;
+        .features {
+            margin-top: 25px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .feature-item {
+            padding: 15px;
+            background: #f8f9fa;
             border-radius: 12px;
-            cursor: pointer;
-            font-weight: 600;
+            font-size: 13px;
+            color: #555;
+            border: 1px solid #e0e0e0;
             transition: all 0.3s ease;
         }
 
-        .send-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-
-        .send-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* JWT Visualizer Sidebar */
-        .jwt-sidebar {
-            position: fixed;
-            right: -450px;
-            top: 0;
-            width: 450px;
-            height: 100vh;
+        .feature-item:hover {
             background: white;
-            box-shadow: -2px 0 20px rgba(0, 0, 0, 0.15);
-            transition: right 0.3s ease;
-            z-index: 1000;
-            overflow-y: auto;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
-        .jwt-sidebar.open {
-            right: 0;
-        }
-
-        .jwt-sidebar-header {
-            padding: 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .jwt-sidebar-header h2 {
-            margin: 0;
-            font-size: 20px;
-            font-weight: 600;
-        }
-
-        .jwt-close-btn {
-            position: absolute;
-            top: 24px;
-            right: 24px;
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 20px;
-            line-height: 32px;
-            transition: background 0.3s;
-        }
-
-        .jwt-close-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .jwt-content {
-            padding: 24px;
-        }
-
-        .jwt-section {
-            margin-bottom: 28px;
-        }
-
-        .jwt-section-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: #667eea;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-        }
-
-        .jwt-field {
-            margin-bottom: 12px;
-            padding: 14px;
-            background: #f7fafc;
-            border-radius: 10px;
-            border-left: 4px solid #667eea;
-        }
-
-        .jwt-field-label {
-            font-size: 11px;
-            color: #718096;
-            margin-bottom: 6px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .jwt-field-value {
-            font-size: 14px;
-            color: #2d3748;
-            word-break: break-all;
-            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
-            line-height: 1.5;
-        }
-
-        .jwt-expiry {
-            padding: 14px;
-            background: #fff5f5;
-            border-left: 4px solid #f56565;
-            border-radius: 10px;
-        }
-
-        .jwt-expiry.valid {
-            background: #f0fff4;
-            border-left-color: #48bb78;
-        }
-
-        .jwt-no-token {
-            text-align: center;
-            padding: 60px 20px;
-            color: #718096;
-        }
-
-        .jwt-no-token p:first-child {
-            font-size: 16px;
-            font-weight: 600;
+        .feature-icon {
+            font-size: 24px;
             margin-bottom: 8px;
         }
 
-        .jwt-groups {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 12px;
-        }
-
-        .jwt-group-badge {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 6px 14px;
-            border-radius: 16px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .jwt-refresh-indicator {
+        .divider {
             text-align: center;
-            padding: 12px;
-            color: #a0aec0;
-            font-size: 11px;
-            border-top: 1px solid #e2e8f0;
-            margin-top: 20px;
+            margin: 20px 0;
+            position: relative;
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .jwt-sidebar {
-                width: 100%;
-                right: -100%;
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #dee2e6;
+        }
+
+        .divider span {
+            background: white;
+            padding: 0 15px;
+            color: #999;
+            font-size: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 40px 30px;
             }
 
-            .chat-container {
-                max-width: 100%;
-                height: 100vh;
-                border-radius: 0;
+            .features {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Login Screen -->
-    <div class="main-container" id="loginScreen">
-        <div class="app-icon">🤖</div>
+    <div class="bg-shape"></div>
+    <div class="bg-shape"></div>
+    <div class="bg-shape"></div>
+
+    <div class="container">
+        <div class="logo-icon">🤖</div>
         <h1>DataRobot AI Assistant</h1>
-        <p class="subtitle">Connect and chat with AI across all environments</p>
+        <p class="subtitle">Choose your authentication provider</p>
         
-        <button class="login-btn" onclick="loginWithOkta()">
-            🔐 Login with Okta
-        </button>
+        <div class="auth-providers">
+            <div class="provider-title">🔐 Authentication Providers</div>
+            
+            <!-- Okta Login (Active) -->
+            <button class="login-button okta" onclick="login('okta')">
+                <span class="provider-icon">🔵</span>
+                <span>Login with Okta</span>
+            </button>
 
-        <div class="about-section">
-            <h3>✨ About this application</h3>
-            <ul class="feature-list">
-                <li>🔒 Enterprise SSO with OAuth 2.0</li>
-                <li>⚡ Multi-Environment Support (Staging, EKS, GKE)</li>
-                <li>💬 Real-time AI Chat powered by DataRobot LLMs</li>
-                <li>🎯 Secure JWT Token Authentication</li>
-            </ul>
+            <!-- EntraID Login (Placeholder) -->
+            <button class="login-button entraid" onclick="login('entraid')" disabled>
+                <span class="coming-soon-badge">SOON</span>
+                <span class="provider-icon">
+                    <svg width="20" height="20" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="10.6" height="10.6" fill="white"/>
+                        <rect x="12.4" width="10.6" height="10.6" fill="white" opacity="0.8"/>
+                        <rect y="12.4" width="10.6" height="10.6" fill="white" opacity="0.6"/>
+                        <rect x="12.4" y="12.4" width="10.6" height="10.6" fill="white" opacity="0.4"/>
+                    </svg>
+                </span>
+                <span>Login with Microsoft EntraID</span>
+            </button>
+        </div>
+        
+        <div class="info">
+            <strong>ℹ️ About this application</strong>
+            This AI Assistant connects to DataRobot's deployment environments using secure OAuth 2.0 authentication. Your credentials are protected end-to-end with industry-standard security.
+        </div>
+
+        <div class="features">
+            <div class="feature-item">
+                <div class="feature-icon">⚡</div>
+                <strong>Multi-Environment</strong>
+                Switch between Staging, EKS, and GKE
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">💬</div>
+                <strong>Real-time Chat</strong>
+                Powered by DataRobot LLMs
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🔒</div>
+                <strong>Secure</strong>
+                Enterprise-grade authentication
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🎯</div>
+                <strong>Context-Aware</strong>
+                Maintains conversation history
+            </div>
         </div>
     </div>
 
-    <!-- Chat Container -->
-    <div class="chat-container" id="chatContainer">
-        <div class="chat-header">
-            <h1>🤖 DataRobot AI Assistant</h1>
-            <div class="header-buttons">
-                <button class="jwt-toggle-header-btn" onclick="toggleJWTSidebar()">
-                    🔍 JWT Info
-                </button>
-                <button class="settings-btn" onclick="openSettings()">⚙️ Settings</button>
-            </div>
-        </div>
-        
-        <div class="chat-messages" id="chatMessages">
-            <div class="message assistant">
-                <div class="message-content">
-                    Hello! I'm your DataRobot AI Assistant. How can I help you today?
-                </div>
-            </div>
-        </div>
-        
-        <div class="chat-input-container">
-            <div class="chat-input-wrapper">
-                <input 
-                    type="text" 
-                    class="chat-input" 
-                    id="chatInput" 
-                    placeholder="Type your message..."
-                    onkeypress="handleKeyPress(event)"
-                >
-                <button class="send-btn" onclick="sendMessage()" id="sendBtn">
-                    Send
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- JWT Visualizer Sidebar -->
-    <div class="jwt-sidebar" id="jwtSidebar">
-        <div class="jwt-sidebar-header">
-            <h2>JWT Token Details</h2>
-            <button class="jwt-close-btn" onclick="toggleJWTSidebar()">×</button>
-        </div>
-        <div class="jwt-content" id="jwtContent">
-            <div class="jwt-no-token">
-                <p>No JWT token found</p>
-                <p>Please log in with Okta to view token details</p>
-            </div>
-        </div>
+    <div class="footer">
+        © 2026 DataRobot QA Demo • Powered by AWS Lambda
     </div>
 
     <script>
-        // ============================================
-        // JWT VISUALIZER FUNCTIONS
-        // ============================================
-        
-        function toggleJWTSidebar() {
-            const sidebar = document.getElementById('jwtSidebar');
-            sidebar.classList.toggle('open');
-            
-            // Refresh token display when opening
-            if (sidebar.classList.contains('open')) {
-                displayJWTToken();
+        // ═══════════════════════════════════════════════════════════════
+        // AUTHENTICATION PROVIDER CONFIGURATIONS
+        // ═══════════════════════════════════════════════════════════════
+
+        const AUTH_PROVIDERS = {
+            // ✅ OKTA - Fully Implemented
+            okta: {
+                enabled: true,
+                name: 'Okta',
+                authDomain: 'agents-dell.oktapreview.com',
+                clientId: '0oasm7gb2oAVsX8c81d7',
+                clientSecret: 'qZlPCO7zIe37Y6H51lbie5BiZ31k8QAk4rD3hs977V66JMIgRImeeM-fmN6jL3SA',
+                redirectUri: window.location.origin + '/callback.html',
+                apiGateway: 'https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api',
+                scope: 'openid profile email',
+                responseType: 'code',
+                authEndpoint: '/oauth2/default/v1/authorize',
+                tokenEndpoint: '/oauth2/default/v1/token'
+            },
+
+            // 🚧 ENTRAID (Microsoft) - Placeholder for Future Implementation
+            entraid: {
+                enabled: false,
+                name: 'Microsoft EntraID',
+                authDomain: 'login.microsoftonline.com',
+                tenantId: 'YOUR_TENANT_ID', // To be configured
+                clientId: 'YOUR_CLIENT_ID', // To be configured
+                clientSecret: 'YOUR_CLIENT_SECRET', // To be configured
+                redirectUri: window.location.origin + '/callback.html',
+                apiGateway: 'https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api',
+                scope: 'openid profile email User.Read',
+                responseType: 'code',
+                authEndpoint: '/oauth2/v2.0/authorize',
+                tokenEndpoint: '/oauth2/v2.0/token',
+                // Future implementation notes:
+                // 1. Register app in Azure AD (Entra ID)
+                // 2. Configure redirect URIs
+                // 3. Set up API permissions (User.Read, openid, profile, email)
+                // 4. Create client secret
+                // 5. Update Lambda to handle Microsoft token exchange
+                // 6. Map Microsoft claims to DataRobot user attributes
+                // 7. Test with Microsoft accounts
             }
+        };
+
+        // ═══════════════════════════════════════════════════════════════
+        // UTILITY FUNCTIONS
+        // ═══════════════════════════════════════════════════════════════
+
+        function generateRandomString(length) {
+            const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            const values = crypto.getRandomValues(new Uint8Array(length));
+            return Array.from(values)
+                .map(x => possible[x % possible.length])
+                .join('');
         }
 
-        function parseJWT(token) {
-            try {
-                const base64Url = token.split('.')[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                }).join(''));
-                return JSON.parse(jsonPayload);
-            } catch (e) {
-                console.error('Error parsing JWT:', e);
-                return null;
-            }
-        }
+        // ═══════════════════════════════════════════════════════════════
+        // LOGIN HANDLER
+        // ═══════════════════════════════════════════════════════════════
 
-        function formatTimeRemaining(seconds) {
-            if (seconds < 60) {
-                return `${seconds} seconds`;
-            } else if (seconds < 3600) {
-                return `${Math.floor(seconds / 60)} minutes`;
-            } else {
-                const hours = Math.floor(seconds / 3600);
-                const minutes = Math.floor((seconds % 3600) / 60);
-                return `${hours}h ${minutes}m`;
-            }
-        }
+        function login(provider) {
+            console.log(`%c═══════════════════════════════════════`, 'color: #569cd6');
+            console.log(`%c🔐 Starting ${provider.toUpperCase()} OAuth Flow`, 'color: #4ec9b0; font-weight: bold');
+            console.log(`%c═══════════════════════════════════════`, 'color: #569cd6');
 
-        function displayJWTToken() {
-            const token = sessionStorage.getItem('jwt_token');
-            const content = document.getElementById('jwtContent');
-            
-            if (!token) {
-                content.innerHTML = `
-                    <div class="jwt-no-token">
-                        <p>No JWT token found</p>
-                        <p>Please log in with Okta to view token details</p>
-                    </div>
-                `;
+            const config = AUTH_PROVIDERS[provider];
+
+            // Check if provider is enabled
+            if (!config.enabled) {
+                alert(`${config.name} authentication is not yet implemented.\n\nThis feature is coming soon!\n\nTo implement:\n1. Register app in ${config.name}\n2. Configure OAuth credentials\n3. Update Lambda function\n4. Enable provider in code`);
+                console.warn(`%c⚠️  ${config.name} is not enabled yet`, 'color: #ff9800; font-weight: bold');
+                console.log('%cImplementation checklist:', 'color: #569cd6');
+                console.log('  □ Register OAuth application');
+                console.log('  □ Configure redirect URIs');
+                console.log('  □ Obtain client credentials');
+                console.log('  □ Update AUTH_PROVIDERS config');
+                console.log('  □ Update Lambda token exchange');
+                console.log('  □ Test authentication flow');
+                console.log('  □ Set enabled: true');
                 return;
             }
 
-            const decoded = parseJWT(token);
-            if (!decoded) {
-                content.innerHTML = `
-                    <div class="jwt-no-token">
-                        <p>Invalid JWT token</p>
-                        <p>Unable to decode token</p>
-                    </div>
-                `;
-                return;
-            }
-
-            // Calculate expiry
-            const now = Math.floor(Date.now() / 1000);
-            const expiresIn = decoded.exp - now;
-            const isValid = expiresIn > 0;
-            const expiryTime = new Date(decoded.exp * 1000).toLocaleString();
-
-            // Build HTML
-            let html = '';
-
-            // User Information
-            html += `
-                <div class="jwt-section">
-                    <div class="jwt-section-title">👤 User Information</div>
-                    ${decoded.sub ? `
-                        <div class="jwt-field">
-                            <div class="jwt-field-label">Username</div>
-                            <div class="jwt-field-value">${decoded.sub}</div>
-                        </div>
-                    ` : ''}
-                    ${decoded.email ? `
-                        <div class="jwt-field">
-                            <div class="jwt-field-label">Email</div>
-                            <div class="jwt-field-value">${decoded.email}</div>
-                        </div>
-                    ` : ''}
-                    ${decoded.given_name || decoded.first_name ? `
-                        <div class="jwt-field">
-                            <div class="jwt-field-label">First Name</div>
-                            <div class="jwt-field-value">${decoded.given_name || decoded.first_name}</div>
-                        </div>
-                    ` : ''}
-                    ${decoded.family_name || decoded.last_name ? `
-                        <div class="jwt-field">
-                            <div class="jwt-field-label">Last Name</div>
-                            <div class="jwt-field-value">${decoded.family_name || decoded.last_name}</div>
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-
-            // Token Information
-            html += `
-                <div class="jwt-section">
-                    <div class="jwt-section-title">🔐 Token Information</div>
-                    ${decoded.iss ? `
-                        <div class="jwt-field">
-                            <div class="jwt-field-label">Issuer</div>
-                            <div class="jwt-field-value">${decoded.iss}</div>
-                        </div>
-                    ` : ''}
-                    ${decoded.aud ? `
-                        <div class="jwt-field">
-                            <div class="jwt-field-label">Audience</div>
-                            <div class="jwt-field-value">${Array.isArray(decoded.aud) ? decoded.aud.join(', ') : decoded.aud}</div>
-                        </div>
-                    ` : ''}
-                    ${decoded.orgId ? `
-                        <div class="jwt-field">
-                            <div class="jwt-field-label">Organization ID</div>
-                            <div class="jwt-field-value">${decoded.orgId}</div>
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-
-            // Expiration
-            html += `
-                <div class="jwt-section">
-                    <div class="jwt-section-title">⏰ Expiration</div>
-                    <div class="jwt-expiry ${isValid ? 'valid' : ''}">
-                        <div class="jwt-field-label">Status</div>
-                        <div class="jwt-field-value" style="font-weight: 600;">
-                            ${isValid ? '✓ Valid' : '✗ Expired'}
-                        </div>
-                        <div class="jwt-field-label" style="margin-top: 12px;">Expires At</div>
-                        <div class="jwt-field-value">${expiryTime}</div>
-                        ${isValid ? `
-                            <div class="jwt-field-label" style="margin-top: 12px;">Time Remaining</div>
-                            <div class="jwt-field-value" style="font-weight: 600; color: #48bb78;">
-                                ${formatTimeRemaining(expiresIn)}
-                            </div>
-                        ` : ''}
-                    </div>
-                </div>
-            `;
-
-            // Groups
-            if (decoded.groups) {
-                const groups = Array.isArray(decoded.groups) 
-                    ? decoded.groups 
-                    : decoded.groups.split(',').map(g => g.trim());
-                
-                html += `
-                    <div class="jwt-section">
-                        <div class="jwt-section-title">👥 Groups (${groups.length})</div>
-                        <div class="jwt-groups">
-                            ${groups.map(group => `<span class="jwt-group-badge">${group}</span>`).join('')}
-                        </div>
-                    </div>
-                `;
-            }
-
-            // Scopes
-            if (decoded.scope) {
-                const scopes = decoded.scope.split(' ');
-                html += `
-                    <div class="jwt-section">
-                        <div class="jwt-section-title">🔑 Scopes</div>
-                        <div class="jwt-field">
-                            <div class="jwt-field-value">${scopes.join(', ')}</div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            // Add refresh indicator
-            html += `
-                <div class="jwt-refresh-indicator">
-                    Auto-refreshes every 30 seconds
-                </div>
-            `;
-
-            content.innerHTML = html;
-        }
-
-        // Refresh JWT display every 30 seconds if sidebar is open
-        setInterval(() => {
-            const sidebar = document.getElementById('jwtSidebar');
-            if (sidebar.classList.contains('open')) {
-                displayJWTToken();
-            }
-        }, 30000);
-
-        // ============================================
-        // AUTHENTICATION FUNCTIONS
-        // ============================================
-
-        function loginWithOkta() {
-            // TODO: Replace YOUR_ACTUAL_CLIENT_ID with your real Okta client ID
-            const oktaLoginUrl = 'https://agents-dell.oktapreview.com/oauth2/default/v1/authorize';
-            const clientId = '0oasm7gb2oAVsX8c81d7';  // ⚠️ REPLACE THIS
-            const redirectUri = encodeURIComponent(window.location.origin + '/callback');
-            const scope = 'openid profile email';
+            // Store configuration in session
+            sessionStorage.setItem('auth_provider', provider);
+            sessionStorage.setItem('chatbot_config', JSON.stringify(config));
             
-            const authUrl = `${oktaLoginUrl}?client_id=${clientId}&response_type=code&scope=${scope}&redirect_uri=${redirectUri}&state=state123`;
+            // Generate and store state for CSRF protection
+            const state = generateRandomString(32);
+            sessionStorage.setItem('oauth_state', state);
+
+            console.log('Provider:', config.name);
+            console.log('Auth Domain:', config.authDomain);
+            console.log('Client ID:', config.clientId);
+            console.log('Redirect URI:', config.redirectUri);
+            console.log('State:', state);
+
+            // Build authorization URL
+            const params = new URLSearchParams({
+                client_id: config.clientId,
+                response_type: config.responseType,
+                scope: config.scope,
+                redirect_uri: config.redirectUri,
+                state: state
+            });
+
+            // Add tenant ID for EntraID (when implemented)
+            if (provider === 'entraid' && config.tenantId) {
+                // For EntraID, the tenant is part of the domain
+                config.authDomain = `login.microsoftonline.com/${config.tenantId}`;
+            }
             
+            const authUrl = `https://${config.authDomain}${config.authEndpoint}?${params.toString()}`;
+            
+            console.log('Authorization URL:', authUrl);
+            console.log('%c✓ Redirecting to authorization server...', 'color: #4ec9b0');
+            
+            // Redirect to authorization server
             window.location.href = authUrl;
         }
 
-        function checkAuthentication() {
-            const authenticated = sessionStorage.getItem('authenticated');
-            const token = sessionStorage.getItem('jwt_token');
-            
-            if (authenticated && token) {
-                // Hide login, show chat
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('chatContainer').classList.add('active');
-                return true;
-            } else {
-                // Show login, hide chat
-                document.getElementById('loginScreen').style.display = 'block';
-                document.getElementById('chatContainer').classList.remove('active');
-                return false;
-            }
-        }
-
-        // ============================================
-        // CHAT FUNCTIONS
-        // ============================================
-
-        function addMessage(content, isUser = false) {
-            const messagesContainer = document.getElementById('chatMessages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isUser ? 'user' : 'assistant'}`;
-            messageDiv.innerHTML = `<div class="message-content">${content}</div>`;
-            messagesContainer.appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        async function sendMessage() {
-            const input = document.getElementById('chatInput');
-            const message = input.value.trim();
-            
-            if (!message) return;
-            
-            // Add user message
-            addMessage(message, true);
-            input.value = '';
-            
-            // Disable send button
-            const sendBtn = document.getElementById('sendBtn');
-            sendBtn.disabled = true;
-            sendBtn.textContent = 'Sending...';
-            
-            try {
-                // Get JWT token
-                const token = sessionStorage.getItem('jwt_token');
-                
-                // TODO: Replace with actual API call to DataRobot
-                // const response = await fetch('YOUR_API_ENDPOINT', {
-                //     method: 'POST',
-                //     headers: {
-                //         'Content-Type': 'application/json',
-                //         'Authorization': `Bearer ${token}`
-                //     },
-                //     body: JSON.stringify({ message })
-                // });
-                // const data = await response.json();
-                
-                // Simulate API response
-                setTimeout(() => {
-                    addMessage('This is a simulated response. Please configure your DataRobot deployment in Settings to get real AI responses.');
-                    sendBtn.disabled = false;
-                    sendBtn.textContent = 'Send';
-                }, 1000);
-                
-            } catch (error) {
-                console.error('Error sending message:', error);
-                addMessage('Sorry, there was an error sending your message. Please try again.');
-                sendBtn.disabled = false;
-                sendBtn.textContent = 'Send';
-            }
-        }
-
-        function handleKeyPress(event) {
-            if (event.key === 'Enter') {
-                sendMessage();
-            }
-        }
-
-        function openSettings() {
-            alert('Settings functionality - implement your settings modal here');
-        }
-
-        // ============================================
+        // ═══════════════════════════════════════════════════════════════
         // INITIALIZATION
-        // ============================================
+        // ═══════════════════════════════════════════════════════════════
 
-        window.onload = function() {
-            checkAuthentication();
-        };
+        console.log('%c🚀 Multi-Provider Authentication System Loaded', 'color: #4ec9b0; font-weight: bold');
+        console.log('%c═══════════════════════════════════════', 'color: #569cd6');
+        console.log('Available Providers:', Object.keys(AUTH_PROVIDERS).map(p => AUTH_PROVIDERS[p].name).join(', '));
+        console.log('Enabled Providers:', Object.keys(AUTH_PROVIDERS).filter(p => AUTH_PROVIDERS[p].enabled).map(p => AUTH_PROVIDERS[p].name).join(', '));
+        console.log('Coming Soon:', Object.keys(AUTH_PROVIDERS).filter(p => !AUTH_PROVIDERS[p].enabled).map(p => AUTH_PROVIDERS[p].name).join(', '));
+        console.log('%c═══════════════════════════════════════', 'color: #569cd6');
     </script>
 </body>
 </html>
