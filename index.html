@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataRobot ChatBot Login</title>
+    <title>DataRobot AI Assistant - Login</title>
     <style>
         * {
             margin: 0;
@@ -19,95 +19,405 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bg-shape {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .bg-shape:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            top: -100px;
+            left: -100px;
+            animation-delay: 0s;
+        }
+
+        .bg-shape:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            bottom: -50px;
+            right: -50px;
+            animation-delay: 7s;
+        }
+
+        .bg-shape:nth-child(3) {
+            width: 150px;
+            height: 150px;
+            top: 50%;
+            right: 10%;
+            animation-delay: 14s;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-50px) rotate(180deg);
+            }
         }
         
         .container {
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 50px 40px;
-            max-width: 500px;
+            border-radius: 30px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
+            padding: 60px 50px;
+            max-width: 550px;
             width: 100%;
             text-align: center;
+            position: relative;
+            z-index: 1;
+            animation: slideUp 0.6s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         .logo-icon {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 20px;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 25px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
+            border-radius: 25px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 40px;
+            font-size: 50px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
         }
         
         h1 {
             color: #333;
-            font-size: 28px;
-            margin-bottom: 10px;
+            font-size: 32px;
+            margin-bottom: 12px;
+            font-weight: 700;
         }
         
         .subtitle {
             color: #666;
             font-size: 16px;
-            margin-bottom: 40px;
+            margin-bottom: 35px;
+            line-height: 1.6;
+        }
+
+        .auth-providers {
+            margin-bottom: 30px;
+        }
+
+        .provider-title {
+            color: #333;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-align: left;
         }
         
         .login-button {
             width: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 16px;
-            font-size: 16px;
+            padding: 18px;
+            font-size: 17px;
             font-weight: 600;
-            border-radius: 10px;
+            border-radius: 15px;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            position: relative;
         }
-        
-        .login-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+
+        .login-button:hover:not(:disabled) {
+            transform: translateY(-3px);
+        }
+
+        .login-button:active:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        .login-button.okta {
+            background: linear-gradient(135deg, #007dc1 0%, #00558c 100%);
+            box-shadow: 0 8px 25px rgba(0, 125, 193, 0.4);
+        }
+
+        .login-button.okta:hover:not(:disabled) {
+            box-shadow: 0 12px 35px rgba(0, 125, 193, 0.6);
+        }
+
+        .login-button.entraid {
+            background: linear-gradient(135deg, #0078d4 0%, #005a9e 100%);
+            box-shadow: 0 8px 25px rgba(0, 120, 212, 0.4);
+        }
+
+        .login-button.entraid:hover:not(:disabled) {
+            box-shadow: 0 12px 35px rgba(0, 120, 212, 0.6);
+        }
+
+        .login-button:disabled {
+            background: linear-gradient(135deg, #ccc 0%, #999 100%);
+            cursor: not-allowed;
+            box-shadow: none;
+            opacity: 0.6;
+        }
+
+        .coming-soon-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ff9800;
+            color: white;
+            font-size: 10px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(255, 152, 0, 0.4);
+        }
+
+        .provider-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
         }
         
         .info {
-            margin-top: 30px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            font-size: 13px;
+            margin-top: 35px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            font-size: 14px;
             color: #666;
             text-align: left;
+            border: 1px solid #e0e0e0;
+        }
+
+        .info strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+
+        .features {
+            margin-top: 25px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .feature-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            font-size: 13px;
+            color: #555;
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .feature-item:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .feature-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #dee2e6;
+        }
+
+        .divider span {
+            background: white;
+            padding: 0 15px;
+            color: #999;
+            font-size: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 40px 30px;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="bg-shape"></div>
+    <div class="bg-shape"></div>
+    <div class="bg-shape"></div>
+
     <div class="container">
         <div class="logo-icon">🤖</div>
-        <h1>DataRobot ChatBot</h1>
-        <p class="subtitle">Secure authentication with Okta</p>
+        <h1>DataRobot AI Assistant</h1>
+        <p class="subtitle">Choose your authentication provider</p>
         
-        <button class="login-button" onclick="login()">
-            🔐 Login with Okta
-        </button>
+        <div class="auth-providers">
+            <div class="provider-title">🔐 Authentication Providers</div>
+            
+            <!-- Okta Login (Active) -->
+            <button class="login-button okta" onclick="login('okta')">
+                <span class="provider-icon">🔵</span>
+                <span>Login with Okta</span>
+            </button>
+
+            <!-- EntraID Login (Placeholder) -->
+            <button class="login-button entraid" onclick="login('entraid')" disabled>
+                <span class="coming-soon-badge">SOON</span>
+                <span class="provider-icon">
+                    <svg width="20" height="20" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="10.6" height="10.6" fill="white"/>
+                        <rect x="12.4" width="10.6" height="10.6" fill="white" opacity="0.8"/>
+                        <rect y="12.4" width="10.6" height="10.6" fill="white" opacity="0.6"/>
+                        <rect x="12.4" y="12.4" width="10.6" height="10.6" fill="white" opacity="0.4"/>
+                    </svg>
+                </span>
+                <span>Login with Microsoft EntraID</span>
+            </button>
+        </div>
         
         <div class="info">
-            <strong>ℹ️ About this application:</strong><br>
-            This ChatBot connects to DataRobot's environment using OAuth authentication via Okta. Your access token will be used to communicate with AI deployments.
+            <strong>ℹ️ About this application</strong>
+            This AI Assistant connects to DataRobot's deployment environments using secure OAuth 2.0 authentication. Your credentials are protected end-to-end with industry-standard security.
+        </div>
+
+        <div class="features">
+            <div class="feature-item">
+                <div class="feature-icon">⚡</div>
+                <strong>Multi-Environment</strong>
+                Switch between Staging, EKS, and GKE
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">💬</div>
+                <strong>Real-time Chat</strong>
+                Powered by DataRobot LLMs
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🔒</div>
+                <strong>Secure</strong>
+                Enterprise-grade authentication
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🎯</div>
+                <strong>Context-Aware</strong>
+                Maintains conversation history
+            </div>
         </div>
     </div>
 
+    <div class="footer">
+        © 2026 DataRobot QA Demo • Powered by AWS Lambda
+    </div>
+
     <script>
-        const config = {
-            authProvider: 'okta',
-            authDomain: 'agents-dell.oktapreview.com',
-            clientId: '0oasm7gb2oAVsX8c81d7',
-            redirectUri: window.location.origin + '/callback.html'
+        // ═══════════════════════════════════════════════════════════════
+        // AUTHENTICATION PROVIDER CONFIGURATIONS
+        // ═══════════════════════════════════════════════════════════════
+
+        const AUTH_PROVIDERS = {
+            // ✅ OKTA - Fully Implemented
+            okta: {
+                enabled: true,
+                name: 'Okta',
+                authDomain: 'agents-dell.oktapreview.com',
+                clientId: '0oasm7gb2oAVsX8c81d7',
+                clientSecret: 'qZlPCO7zIe37Y6H51lbie5BiZ31k8QAk4rD3hs977V66JMIgRImeeM-fmN6jL3SA',
+                redirectUri: window.location.origin + '/callback.html',
+                apiGateway: 'https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api',
+                scope: 'openid profile email',
+                responseType: 'code',
+                authEndpoint: '/oauth2/default/v1/authorize',
+                tokenEndpoint: '/oauth2/default/v1/token'
+            },
+
+            // 🚧 ENTRAID (Microsoft) - Placeholder for Future Implementation
+            entraid: {
+                enabled: false,
+                name: 'Microsoft EntraID',
+                authDomain: 'login.microsoftonline.com',
+                tenantId: 'YOUR_TENANT_ID', // To be configured
+                clientId: 'YOUR_CLIENT_ID', // To be configured
+                clientSecret: 'YOUR_CLIENT_SECRET', // To be configured
+                redirectUri: window.location.origin + '/callback.html',
+                apiGateway: 'https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api',
+                scope: 'openid profile email User.Read',
+                responseType: 'code',
+                authEndpoint: '/oauth2/v2.0/authorize',
+                tokenEndpoint: '/oauth2/v2.0/token',
+                // Future implementation notes:
+                // 1. Register app in Azure AD (Entra ID)
+                // 2. Configure redirect URIs
+                // 3. Set up API permissions (User.Read, openid, profile, email)
+                // 4. Create client secret
+                // 5. Update Lambda to handle Microsoft token exchange
+                // 6. Map Microsoft claims to DataRobot user attributes
+                // 7. Test with Microsoft accounts
+            }
         };
+
+        // ═══════════════════════════════════════════════════════════════
+        // UTILITY FUNCTIONS
+        // ═══════════════════════════════════════════════════════════════
 
         function generateRandomString(length) {
             const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -117,30 +427,80 @@
                 .join('');
         }
 
-        function login() {
-            console.log('=== Starting Okta OAuth Flow ===');
-            
-            // Store configuration
+        // ═══════════════════════════════════════════════════════════════
+        // LOGIN HANDLER
+        // ═══════════════════════════════════════════════════════════════
+
+        function login(provider) {
+            console.log(`%c═══════════════════════════════════════`, 'color: #569cd6');
+            console.log(`%c🔐 Starting ${provider.toUpperCase()} OAuth Flow`, 'color: #4ec9b0; font-weight: bold');
+            console.log(`%c═══════════════════════════════════════`, 'color: #569cd6');
+
+            const config = AUTH_PROVIDERS[provider];
+
+            // Check if provider is enabled
+            if (!config.enabled) {
+                alert(`${config.name} authentication is not yet implemented.\n\nThis feature is coming soon!\n\nTo implement:\n1. Register app in ${config.name}\n2. Configure OAuth credentials\n3. Update Lambda function\n4. Enable provider in code`);
+                console.warn(`%c⚠️  ${config.name} is not enabled yet`, 'color: #ff9800; font-weight: bold');
+                console.log('%cImplementation checklist:', 'color: #569cd6');
+                console.log('  □ Register OAuth application');
+                console.log('  □ Configure redirect URIs');
+                console.log('  □ Obtain client credentials');
+                console.log('  □ Update AUTH_PROVIDERS config');
+                console.log('  □ Update Lambda token exchange');
+                console.log('  □ Test authentication flow');
+                console.log('  □ Set enabled: true');
+                return;
+            }
+
+            // Store configuration in session
+            sessionStorage.setItem('auth_provider', provider);
             sessionStorage.setItem('chatbot_config', JSON.stringify(config));
             
-            // Generate and store state
+            // Generate and store state for CSRF protection
             const state = generateRandomString(32);
             sessionStorage.setItem('oauth_state', state);
-            
-            // Build authorization URL for Okta
+
+            console.log('Provider:', config.name);
+            console.log('Auth Domain:', config.authDomain);
+            console.log('Client ID:', config.clientId);
+            console.log('Redirect URI:', config.redirectUri);
+            console.log('State:', state);
+
+            // Build authorization URL
             const params = new URLSearchParams({
                 client_id: config.clientId,
-                response_type: 'code',
-                scope: 'openid profile email',
+                response_type: config.responseType,
+                scope: config.scope,
                 redirect_uri: config.redirectUri,
                 state: state
             });
+
+            // Add tenant ID for EntraID (when implemented)
+            if (provider === 'entraid' && config.tenantId) {
+                // For EntraID, the tenant is part of the domain
+                config.authDomain = `login.microsoftonline.com/${config.tenantId}`;
+            }
             
-            const authUrl = `https://${config.authDomain}/oauth2/default/v1/authorize?${params.toString()}`;
+            const authUrl = `https://${config.authDomain}${config.authEndpoint}?${params.toString()}`;
             
-            console.log('Redirecting to:', authUrl);
+            console.log('Authorization URL:', authUrl);
+            console.log('%c✓ Redirecting to authorization server...', 'color: #4ec9b0');
+            
+            // Redirect to authorization server
             window.location.href = authUrl;
         }
+
+        // ═══════════════════════════════════════════════════════════════
+        // INITIALIZATION
+        // ═══════════════════════════════════════════════════════════════
+
+        console.log('%c🚀 Multi-Provider Authentication System Loaded', 'color: #4ec9b0; font-weight: bold');
+        console.log('%c═══════════════════════════════════════', 'color: #569cd6');
+        console.log('Available Providers:', Object.keys(AUTH_PROVIDERS).map(p => AUTH_PROVIDERS[p].name).join(', '));
+        console.log('Enabled Providers:', Object.keys(AUTH_PROVIDERS).filter(p => AUTH_PROVIDERS[p].enabled).map(p => AUTH_PROVIDERS[p].name).join(', '));
+        console.log('Coming Soon:', Object.keys(AUTH_PROVIDERS).filter(p => !AUTH_PROVIDERS[p].enabled).map(p => AUTH_PROVIDERS[p].name).join(', '));
+        console.log('%c═══════════════════════════════════════', 'color: #569cd6');
     </script>
 </body>
 </html>
