@@ -3,210 +3,654 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Authentication Successful - DataRobot AI Assistant</title>
+    <title>Authentication Callback</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-family: 'Monaco', 'Courier New', monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
             padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .console-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #252526;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        h1 {
+            color: #4ec9b0;
+            margin-bottom: 20px;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 60px 40px;
-            max-width: 500px;
-            width: 100%;
+        .provider-badge {
+            background: #007acc;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .provider-badge.okta {
+            background: #007dc1;
+        }
+
+        .provider-badge.entraid {
+            background: #0078d4;
+        }
+        
+        .flow-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .flow-step {
+            background: #1e1e1e;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 20px;
             text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
         }
-
-        .success-icon {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        
+        .flow-step.active {
+            border-color: #007acc;
+            background: #264f78;
+            box-shadow: 0 0 20px rgba(0, 122, 204, 0.3);
+        }
+        
+        .flow-step.completed {
+            border-color: #4ec9b0;
+            background: #1e3a32;
+        }
+        
+        .flow-step.error {
+            border-color: #f48771;
+            background: #5a1d1d;
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
+            background: #333;
+            color: #d4d4d4;
             display: flex;
             align-items: center;
             justify-content: center;
-            animation: scaleIn 0.5s ease-out;
-        }
-
-        .success-icon::after {
-            content: '✓';
-            font-size: 48px;
-            color: white;
             font-weight: bold;
-        }
-
-        @keyframes scaleIn {
-            from {
-                transform: scale(0);
-                opacity: 0;
-            }
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        h1 {
-            color: #2d3748;
-            font-size: 32px;
-            margin-bottom: 15px;
-            font-weight: 700;
-        }
-
-        .message {
-            color: #718096;
-            font-size: 16px;
-            line-height: 1.6;
-            margin-bottom: 40px;
-        }
-
-        .continue-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 16px 48px;
+            margin: 0 auto 10px;
             font-size: 18px;
-            font-weight: 600;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
-
-        .continue-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        
+        .flow-step.active .step-number {
+            background: #007acc;
+            color: white;
+            animation: pulse 1.5s infinite;
         }
-
-        .continue-btn:active {
-            transform: translateY(0);
+        
+        .flow-step.completed .step-number {
+            background: #4ec9b0;
+            color: white;
         }
-
-        .continue-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+        
+        .flow-step.error .step-number {
+            background: #f48771;
+            color: white;
         }
-
-        .loading {
-            display: none;
-            color: #718096;
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .step-title {
             font-size: 14px;
+            font-weight: bold;
+            color: #9cdcfe;
+            margin-bottom: 8px;
+        }
+        
+        .step-status {
+            font-size: 12px;
+            color: #858585;
+        }
+        
+        .flow-step.active .step-status {
+            color: #dcdcaa;
+        }
+        
+        .flow-step.completed .step-status {
+            color: #4ec9b0;
+        }
+        
+        .details-section {
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 20px;
             margin-top: 20px;
         }
-
-        .loading.show {
-            display: block;
+        
+        .details-title {
+            color: #569cd6;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 16px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
         }
-
-        .spinner {
+        
+        .detail-item {
+            padding: 8px 0;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .detail-label {
+            color: #ce9178;
+            min-width: 150px;
+            font-weight: bold;
+        }
+        
+        .detail-value {
+            color: #9cdcfe;
+            word-break: break-all;
+        }
+        
+        .jwt-decoded {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .jwt-decoded pre {
+            color: #ce9178;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        
+        .status-indicator {
             display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 3px solid rgba(102, 126, 234, 0.3);
-            border-top-color: #667eea;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
             margin-right: 8px;
-            vertical-align: middle;
+        }
+        
+        .status-indicator.processing {
+            background: #dcdcaa;
+            animation: blink 1.5s infinite;
+        }
+        
+        .status-indicator.success {
+            background: #4ec9b0;
+            box-shadow: 0 0 10px #4ec9b0;
+        }
+        
+        .status-indicator.error {
+            background: #f48771;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        .redirect-notice {
+            background: #264f78;
+            padding: 25px;
+            border-radius: 6px;
+            margin-top: 20px;
+            text-align: center;
+            color: #9cdcfe;
+            font-size: 14px;
+        }
+        
+        .redirect-notice strong {
+            color: #4ec9b0;
+            font-size: 18px;
+        }
+        
+        .continue-button {
+            background: linear-gradient(135deg, #4ec9b0 0%, #3aa890 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(78, 201, 176, 0.4);
+            transition: all 0.3s ease;
+            margin-top: 15px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .continue-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(78, 201, 176, 0.6);
         }
 
-        .error-message {
-            background: #fff5f5;
-            border: 1px solid #feb2b2;
-            color: #c53030;
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 20px;
+        .continue-button:active {
+            transform: translateY(0);
+        }
+        
+        .error-box {
+            background: #5a1d1d;
+            border: 2px solid #f48771;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .error-box h3 {
+            color: #f48771;
+            margin-bottom: 10px;
+        }
+        
+        .arrow {
+            position: absolute;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #007acc;
+            font-size: 20px;
+        }
+        
+        .flow-step:last-child .arrow {
             display: none;
         }
 
-        .error-message.show {
-            display: block;
+        @media (max-width: 1024px) {
+            .flow-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .flow-container {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="error-message" id="errorMessage"></div>
+    <div class="console-container">
+        <h1>
+            <span class="status-indicator processing" id="statusIndicator"></span>
+            OAuth 2.0 JWT Authentication Flow
+            <span class="provider-badge" id="providerBadge">Loading...</span>
+        </h1>
         
-        <div class="success-icon"></div>
-        <h1>Authentication Successful!</h1>
-        <p class="message">
-            You've been successfully authenticated with Okta.<br>
-            You're all set to start chatting with the AI assistant.
-        </p>
-        <button class="continue-btn" onclick="continueToChat()">
-            🚀 Continue to Chatbot
-        </button>
-        <div class="loading" id="loadingIndicator">
-            <span class="spinner"></span>
-            Redirecting...
+        <div class="flow-container">
+            <div class="flow-step" id="step1">
+                <div class="step-number">1</div>
+                <div class="step-title">Extract Code</div>
+                <div class="step-status">Waiting...</div>
+                <div class="arrow">→</div>
+            </div>
+            
+            <div class="flow-step" id="step2">
+                <div class="step-number">2</div>
+                <div class="step-title">Validate State</div>
+                <div class="step-status">Waiting...</div>
+                <div class="arrow">→</div>
+            </div>
+            
+            <div class="flow-step" id="step3">
+                <div class="step-number">3</div>
+                <div class="step-title">Exchange via Lambda</div>
+                <div class="step-status">Waiting...</div>
+                <div class="arrow">→</div>
+            </div>
+            
+            <div class="flow-step" id="step4">
+                <div class="step-number">4</div>
+                <div class="step-title">Decode JWT</div>
+                <div class="step-status">Waiting...</div>
+                <div class="arrow">→</div>
+            </div>
+            
+            <div class="flow-step" id="step5">
+                <div class="step-number">5</div>
+                <div class="step-title">Store Session</div>
+                <div class="step-status">Waiting...</div>
+                <div class="arrow">→</div>
+            </div>
+            
+            <div class="flow-step" id="step6">
+                <div class="step-number">6</div>
+                <div class="step-title">Validate Token</div>
+                <div class="step-status">Waiting...</div>
+                <div class="arrow">→</div>
+            </div>
+            
+            <div class="flow-step" id="step7">
+                <div class="step-number">7</div>
+                <div class="step-title">Extract Claims</div>
+                <div class="step-status">Waiting...</div>
+                <div class="arrow">→</div>
+            </div>
+            
+            <div class="flow-step" id="step8">
+                <div class="step-number">8</div>
+                <div class="step-title">Ready</div>
+                <div class="step-status">Waiting...</div>
+            </div>
         </div>
+
+        <div class="details-section" id="detailsSection" style="display:none;">
+            <div class="details-title">🔐 Authentication Details</div>
+            <div id="authDetails"></div>
+        </div>
+
+        <div class="details-section" id="jwtSection" style="display:none;">
+            <div class="details-title"> JWT Token Claims</div>
+            <div class="jwt-decoded">
+                <pre id="jwtDecoded">Waiting for token...</pre>
+            </div>
+        </div>
+
+        <div id="messageContainer"></div>
     </div>
 
     <script>
-        function continueToChat() {
-            // Show loading indicator
-            document.getElementById('loadingIndicator').classList.add('show');
-            document.querySelector('.continue-btn').disabled = true;
+        // Get authentication provider from session
+        const authProvider = sessionStorage.getItem('auth_provider') || 'okta';
+        
+        console.log(`%c🔐 OAuth JWT Authentication Flow Started (${authProvider.toUpperCase()})`, 'color: #4ec9b0; font-size: 16px; font-weight: bold');
+        
+        // Update provider badge
+        const providerBadge = document.getElementById('providerBadge');
+        providerBadge.textContent = authProvider.toUpperCase();
+        providerBadge.className = `provider-badge ${authProvider}`;
+        
+        function updateStep(stepId, status, message) {
+            const step = document.getElementById(stepId);
+            const statusEl = step.querySelector('.step-status');
             
-            // Store authentication state
-            sessionStorage.setItem('authenticated', 'true');
+            step.classList.remove('active', 'completed', 'error');
             
-            // Get the token from URL if present
-            const urlParams = new URLSearchParams(window.location.search);
-            const token = urlParams.get('token');
-            const code = urlParams.get('code');
-            
-            if (token) {
-                sessionStorage.setItem('jwt_token', token);
+            if (status === 'active') {
+                step.classList.add('active');
+                statusEl.textContent = message || 'Processing...';
+            } else if (status === 'completed') {
+                step.classList.add('completed');
+                statusEl.textContent = message || '✓ Complete';
+            } else if (status === 'error') {
+                step.classList.add('error');
+                statusEl.textContent = message || '✗ Failed';
             }
-            
-            // Redirect to main chat
-            setTimeout(() => {
-                window.location.href = '/';
-            }, 500);
         }
 
-        function showError(message) {
-            const errorDiv = document.getElementById('errorMessage');
-            errorDiv.textContent = message;
-            errorDiv.classList.add('show');
+        function addDetail(label, value, isHighlight = false) {
+            const detailsEl = document.getElementById('authDetails');
+            const detailDiv = document.createElement('div');
+            detailDiv.className = 'detail-item';
+            detailDiv.innerHTML = `
+                <div class="detail-label">${label}:</div>
+                <div class="detail-value" style="${isHighlight ? 'color: #4ec9b0; font-weight: bold;' : ''}">${value}</div>
+            `;
+            detailsEl.appendChild(detailDiv);
+            document.getElementById('detailsSection').style.display = 'block';
         }
 
-        // Auto-extract and store token on page load
-        window.onload = function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const token = urlParams.get('token');
-            const code = urlParams.get('code');
-            
-            if (token) {
-                sessionStorage.setItem('jwt_token', token);
-                sessionStorage.setItem('authenticated', 'true');
-                console.log('JWT token stored successfully');
-            } else if (!code && !token) {
-                showError('No authorization code or token found. Please try logging in again.');
+        function decodeJWT(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                console.error('JWT decode error:', e);
+                return null;
             }
-        };
+        }
+
+        function goToChatbot() {
+            console.log('%c🚀 Redirecting to chatbot...', 'color: #4ec9b0; font-weight: bold');
+            window.location.href = 'chatbot.html';
+        }
+
+        async function handleCallback() {
+            const statusIndicator = document.getElementById('statusIndicator');
+            
+            try {
+                // STEP 1: Extract authorization code
+                updateStep('step1', 'active');
+                console.log('%c[STEP 1] Extracting authorization code', 'color: #569cd6; font-weight: bold');
+                
+                const urlParams = new URLSearchParams(window.location.search);
+                const code = urlParams.get('code');
+                const state = urlParams.get('state');
+                const error = urlParams.get('error');
+
+                if (error) {
+                    throw new Error(`OAuth error: ${error}`);
+                }
+
+                if (!code) {
+                    throw new Error('No authorization code received');
+                }
+
+                updateStep('step1', 'completed', '✓ Code extracted');
+                addDetail('Authorization Code', code.substring(0, 30) + '...');
+                console.log('✓ Authorization code:', code.substring(0, 30) + '...');
+
+                // STEP 2: Validate state
+                updateStep('step2', 'active');
+                console.log('%c[STEP 2] Validating state parameter', 'color: #569cd6; font-weight: bold');
+                
+                const savedState = sessionStorage.getItem('oauth_state');
+                const stateValid = state === savedState;
+                
+                if (!stateValid) {
+                    throw new Error('State validation failed - possible CSRF attack');
+                }
+
+                updateStep('step2', 'completed', '✓ State valid');
+                addDetail('State Validation', '✓ Valid', true);
+                addDetail('Provider', authProvider.toUpperCase(), true);
+                console.log('✓ State validated successfully');
+
+                // STEP 3: Exchange code for token via Lambda
+                updateStep('step3', 'active');
+                console.log('%c[STEP 3] Exchanging authorization code for JWT token via Lambda', 'color: #569cd6; font-weight: bold');
+                
+                const config = JSON.parse(sessionStorage.getItem('chatbot_config'));
+                const tokenEndpoint = `https://${config.authDomain}${config.tokenEndpoint}`;
+                
+                addDetail('Token Exchange', 'Via Lambda (Secure)');
+                addDetail('API Gateway', config.apiGateway);
+                console.log('Using Lambda proxy for secure token exchange');
+                console.log('API Gateway:', config.apiGateway);
+                console.log('Provider:', authProvider);
+
+                // Call Lambda to exchange token securely
+                const tokenResponse = await fetch(config.apiGateway, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        grant_type: 'authorization_code',
+                        code: code,
+                        redirect_uri: config.redirectUri,
+                        client_id: config.clientId,
+                        client_secret: config.clientSecret,
+                        token_endpoint: tokenEndpoint,
+                        auth_provider: authProvider
+                    })
+                });
+
+                if (!tokenResponse.ok) {
+                    const errorData = await tokenResponse.json();
+                    console.error('Token exchange error:', errorData);
+                    throw new Error(`Token exchange failed: ${errorData.message || errorData.error}`);
+                }
+
+                const tokenData = await tokenResponse.json();
+                const accessToken = tokenData.access_token;
+                
+                updateStep('step3', 'completed', '✓ Token received');
+                addDetail('Token Type', tokenData.token_type || 'Bearer');
+                addDetail('Expires In', `${tokenData.expires_in} seconds (${Math.round(tokenData.expires_in / 60)} minutes)`);
+                addDetail('Token Length', `${accessToken.length} characters`);
+                console.log('✓ JWT token received:', accessToken.substring(0, 30) + '...');
+
+                // STEP 4: Decode JWT
+                updateStep('step4', 'active');
+                console.log('%c[STEP 4] Decoding JWT token', 'color: #569cd6; font-weight: bold');
+                
+                const decodedToken = decodeJWT(accessToken);
+                
+                if (!decodedToken) {
+                    throw new Error('Failed to decode JWT token');
+                }
+
+                updateStep('step4', 'completed', '✓ JWT decoded');
+                console.log('✓ JWT decoded:', decodedToken);
+
+                // Display JWT claims
+                document.getElementById('jwtSection').style.display = 'block';
+                document.getElementById('jwtDecoded').textContent = JSON.stringify({
+                    'Issuer (iss)': decodedToken.iss,
+                    'Subject (sub)': decodedToken.sub,
+                    'Audience (aud)': decodedToken.aud,
+                    'Issued At (iat)': new Date(decodedToken.iat * 1000).toLocaleString(),
+                    'Expires (exp)': new Date(decodedToken.exp * 1000).toLocaleString(),
+                    'Email': decodedToken.email,
+                    'First Name': decodedToken.firstName || decodedToken.given_name || 'N/A',
+                    'Last Name': decodedToken.lastName || decodedToken.family_name || 'N/A',
+                    'DataRobot Org ID': decodedToken.datarobotOrgId || 'N/A',
+                    'Groups': decodedToken.groups || [],
+                    'Scopes': decodedToken.scp || decodedToken.scope
+                }, null, 2);
+
+                // STEP 5: Store in session
+                updateStep('step5', 'active');
+                console.log('%c[STEP 5] Storing authentication data in session', 'color: #569cd6; font-weight: bold');
+                
+                sessionStorage.setItem('access_token', accessToken);
+                sessionStorage.setItem('token_expires_at', decodedToken.exp * 1000);
+                sessionStorage.setItem('user_email', decodedToken.email || 'N/A');
+                
+                const firstName = decodedToken.firstName || decodedToken.given_name || '';
+                const lastName = decodedToken.lastName || decodedToken.family_name || '';
+                sessionStorage.setItem('user_name', `${firstName} ${lastName}`.trim() || 'User');
+                
+                sessionStorage.setItem('datarobot_org_id', decodedToken.datarobotOrgId || 'N/A');
+                sessionStorage.setItem('user_groups', JSON.stringify(decodedToken.groups || []));
+                
+                updateStep('step5', 'completed', '✓ Session stored');
+                console.log('✓ Session storage complete');
+
+                // STEP 6: Validate token
+                updateStep('step6', 'active');
+                console.log('%c[STEP 6] Validating token expiration', 'color: #569cd6; font-weight: bold');
+                
+                const currentTime = Math.floor(Date.now() / 1000);
+                const timeLeft = decodedToken.exp - currentTime;
+                
+                if (timeLeft < 0) {
+                    throw new Error('Token has already expired');
+                }
+                
+                updateStep('step6', 'completed', '✓ Token valid');
+                addDetail('Time Remaining', `${Math.floor(timeLeft / 60)} minutes`);
+                console.log('✓ Token valid for', Math.floor(timeLeft / 60), 'minutes');
+
+                // STEP 7: Extract claims
+                updateStep('step7', 'active');
+                console.log('%c[STEP 7] Extracting user claims', 'color: #569cd6; font-weight: bold');
+                
+                addDetail('User Email', decodedToken.email || 'N/A', true);
+                addDetail('User Name', `${firstName} ${lastName}`.trim() || 'User', true);
+                addDetail('Organization', decodedToken.datarobotOrgId || 'N/A', true);
+                addDetail('Groups', (decodedToken.groups || []).join(', ') || 'None');
+                
+                updateStep('step7', 'completed', '✓ Claims extracted');
+                console.log('✓ User claims extracted');
+
+                // STEP 8: Ready to proceed
+                updateStep('step8', 'active');
+                console.log('%c[STEP 8] Authentication complete - Ready to proceed', 'color: #569cd6; font-weight: bold');
+                
+                statusIndicator.classList.remove('processing');
+                statusIndicator.classList.add('success');
+                
+                console.log('%c✓ Authentication Complete!', 'color: #4ec9b0; font-size: 16px; font-weight: bold');
+
+                const messageContainer = document.getElementById('messageContainer');
+                messageContainer.innerHTML = `
+                    <div class="redirect-notice">
+                        <strong>✓ Authentication Successful!</strong><br><br>
+                        You're all set to start chatting with the DataRobot AI Assistant.<br><br>
+                        <button class="continue-button" onclick="goToChatbot()">
+                            Continue to Chatbot
+                        </button>
+                    </div>
+                `;
+                
+                updateStep('step8', 'completed', '✓ Ready');
+
+            } catch (error) {
+                statusIndicator.classList.remove('processing');
+                statusIndicator.classList.add('error');
+                
+                console.error('%c✗ Authentication Failed', 'color: #f48771; font-size: 16px; font-weight: bold', error);
+                
+                // Mark current step as error
+                const activeStep = document.querySelector('.flow-step.active');
+                if (activeStep) {
+                    activeStep.classList.remove('active');
+                    activeStep.classList.add('error');
+                    activeStep.querySelector('.step-status').textContent = '✗ Failed';
+                }
+
+                const messageContainer = document.getElementById('messageContainer');
+                messageContainer.innerHTML = `
+                    <div class="error-box">
+                        <h3>❌ Authentication Error</h3>
+                        <p style="color: #f48771; margin-top: 10px;">${error.message}</p>
+                        <div class="redirect-notice" style="background: #5a1d1d; margin-top: 15px;">
+                            Redirecting to login page in 5 seconds...
+                        </div>
+                    </div>
+                `;
+                
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 5000);
+            }
+        }
+
+        handleCallback();
     </script>
 </body>
 </html>
