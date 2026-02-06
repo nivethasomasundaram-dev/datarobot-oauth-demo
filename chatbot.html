@@ -173,12 +173,28 @@
             transition: all 0.3s ease;
             font-family: inherit;
         }
+        
+        .config-item select:disabled,
+        .config-item input:disabled {
+            background: #f8f9fa;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
 
         .config-item select:focus,
         .config-item input:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        #deploymentSelector {
+            width: 100%;
+        }
+        
+        #apiKey[type="password"] {
+            font-family: monospace;
+            letter-spacing: 2px;
         }
 
         .current-config {
@@ -774,8 +790,8 @@
                     </select>
                 </div>
                 <div class="config-item">
-                    <label>Deployment ID</label>
-                    <input type="text" id="deploymentId" placeholder="Enter deployment ID">
+                    <label>DataRobot API Key (Temporary)</label>
+                    <input type="password" id="apiKey" placeholder="Enter API Key to list deployments">
                 </div>
                 <div class="config-item">
                     <label>DataRobot Base URL</label>
@@ -784,6 +800,23 @@
                 <div class="config-item">
                     <label>API Gateway URL</label>
                     <input type="text" id="apiGateway" value="https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api" disabled>
+                </div>
+            </div>
+            
+            <div class="config-item" style="margin-top: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <label>Select Deployment</label>
+                    <button class="btn btn-secondary" style="padding: 8px 16px;" onclick="fetchDeployments()">
+                        🔄 Refresh List
+                    </button>
+                </div>
+                <select id="deploymentSelector" onchange="onDeploymentSelect()">
+                    <option value="">-- Select a deployment --</option>
+                </select>
+                <div id="deploymentLoadingMsg" style="display: none; color: #667eea; margin-top: 8px; font-size: 13px;">
+                    Loading deployments...
+                </div>
+                <div id="deploymentErrorMsg" style="display: none; color: #c62828; margin-top: 8px; font-size: 13px;">
                 </div>
             </div>
             
@@ -860,8 +893,12 @@
             environment: 'staging',
             baseUrl: ENVIRONMENTS.staging.baseUrl,
             deploymentId: ENVIRONMENTS.staging.deploymentId,
-            apiGateway: ENVIRONMENTS.staging.apiGateway
+            apiGateway: ENVIRONMENTS.staging.apiGateway,
+            apiKey: '' // Temporary workaround until JWT-based listing is supported
         };
+
+        // Available deployments cache
+        let availableDeployments = [];
 
         // Conversation history
         let conversationHistory = [];
@@ -1113,6 +1150,19 @@
             if (savedConfig) {
                 currentConfig = JSON.parse(savedConfig);
                 updateUIWithConfig();
+                
+                // Auto-fetch deployments if API key is saved
+                if (currentConfig.apiKey) {
+                    setTimeout(() => {
+                        document.getElementById('apiKey').value = currentConfig.apiKey;
+                        fetchDeployments().then(() => {
+                            // Select the saved deployment after fetching
+                            if (currentConfig.deploymentId) {
+                                document.getElementById('deploymentSelector').value = currentConfig.deploymentId;
+                            }
+                        });
+                    }, 500);
+                }
             }
             
             const accessToken = sessionStorage.getItem('access_token');
@@ -1201,8 +1251,16 @@
             if (panel.classList.contains('active')) {
                 document.getElementById('envSelect').value = currentConfig.environment;
                 document.getElementById('baseUrl').value = currentConfig.baseUrl;
-                document.getElementById('deploymentId').value = currentConfig.deploymentId;
                 document.getElementById('apiGateway').value = currentConfig.apiGateway;
+                if (currentConfig.apiKey) {
+                    document.getElementById('apiKey').value = currentConfig.apiKey;
+                }
+                
+                // If we have deployments cached and a deployment ID, select it
+                if (currentConfig.deploymentId && availableDeployments.length > 0) {
+                    const deploymentSelector = document.getElementById('deploymentSelector');
+                    deploymentSelector.value = currentConfig.deploymentId;
+                }
             }
         }
 
@@ -1211,26 +1269,129 @@
             const config = ENVIRONMENTS[env];
             
             document.getElementById('baseUrl').value = config.baseUrl;
-            document.getElementById('deploymentId').value = config.deploymentId;
             document.getElementById('apiGateway').value = config.apiGateway;
+            
+            // Clear deployment selector when environment changes
+            const deploymentSelector = document.getElementById('deploymentSelector');
+            deploymentSelector.innerHTML = '<option value="">-- Select a deployment --</option>';
+            availableDeployments = [];
+            
+            // Auto-fetch deployments if API key is available
+            const apiKey = document.getElementById('apiKey').value.trim();
+            if (apiKey) {
+                fetchDeployments();
+            }
+        }
+        
+        // Fetch deployments from DataRobot API
+        async function fetchDeployments() {
+            const baseUrl = document.getElementById('baseUrl').value.trim();
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const loadingMsg = document.getElementById('deploymentLoadingMsg');
+            const errorMsg = document.getElementById('deploymentErrorMsg');
+            const deploymentSelector = document.getElementById('deploymentSelector');
+            
+            if (!apiKey) {
+                errorMsg.textContent = '⚠️ Please enter an API key to fetch deployments';
+                errorMsg.style.display = 'block';
+                loadingMsg.style.display = 'none';
+                return;
+            }
+            
+            errorMsg.style.display = 'none';
+            loadingMsg.style.display = 'block';
+            deploymentSelector.disabled = true;
+            
+            try {
+                console.log('%c📡 Fetching Deployments', 'color: #4ec9b0; font-weight: bold');
+                console.log('Base URL:', baseUrl);
+                
+                const response = await fetch(`${baseUrl}/api/v2/deployments/`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                availableDeployments = data.data || [];
+                
+                console.log(`✅ Found ${availableDeployments.length} deployments`);
+                
+                // Populate dropdown
+                deploymentSelector.innerHTML = '<option value="">-- Select a deployment --</option>';
+                availableDeployments.forEach(deployment => {
+                    const option = document.createElement('option');
+                    option.value = deployment.id;
+                    option.textContent = `${deployment.label || 'Unnamed'} (${deployment.id.substring(0, 8)}...)`;
+                    option.dataset.label = deployment.label;
+                    option.dataset.description = deployment.description || '';
+                    deploymentSelector.appendChild(option);
+                });
+                
+                loadingMsg.style.display = 'none';
+                
+                if (availableDeployments.length === 0) {
+                    errorMsg.textContent = 'ℹ️ No deployments found for this environment';
+                    errorMsg.style.display = 'block';
+                    errorMsg.style.color = '#667eea';
+                }
+                
+            } catch (error) {
+                console.error('❌ Error fetching deployments:', error);
+                loadingMsg.style.display = 'none';
+                errorMsg.textContent = `❌ Error: ${error.message}`;
+                errorMsg.style.display = 'block';
+                errorMsg.style.color = '#c62828';
+            } finally {
+                deploymentSelector.disabled = false;
+            }
+        }
+        
+        // Handle deployment selection
+        function onDeploymentSelect() {
+            const deploymentSelector = document.getElementById('deploymentSelector');
+            const selectedId = deploymentSelector.value;
+            
+            if (selectedId) {
+                const selectedDeployment = availableDeployments.find(d => d.id === selectedId);
+                if (selectedDeployment) {
+                    console.log('%c✓ Deployment Selected', 'color: #48bb78; font-weight: bold');
+                    console.log('Name:', selectedDeployment.label);
+                    console.log('ID:', selectedDeployment.id);
+                    console.log('Description:', selectedDeployment.description);
+                }
+            }
         }
 
         function saveConfig() {
             const env = document.getElementById('envSelect').value;
             const baseUrl = document.getElementById('baseUrl').value.trim();
-            const deploymentId = document.getElementById('deploymentId').value.trim();
+            const deploymentSelector = document.getElementById('deploymentSelector');
+            const deploymentId = deploymentSelector.value;
             const apiGateway = document.getElementById('apiGateway').value.trim();
+            const apiKey = document.getElementById('apiKey').value.trim();
 
             if (!baseUrl || !deploymentId || !apiGateway) {
-                addMessage('error', '⚠️ Please fill in all configuration fields');
+                addMessage('error', '⚠️ Please select a deployment');
                 return;
             }
+            
+            const selectedDeployment = availableDeployments.find(d => d.id === deploymentId);
+            const deploymentLabel = selectedDeployment ? selectedDeployment.label : 'Selected Deployment';
 
             currentConfig = {
                 environment: env,
                 baseUrl: baseUrl,
                 deploymentId: deploymentId,
-                apiGateway: apiGateway
+                apiGateway: apiGateway,
+                apiKey: apiKey,
+                deploymentLabel: deploymentLabel
             };
 
             localStorage.setItem('chatbot_config', JSON.stringify(currentConfig));
@@ -1239,7 +1400,7 @@
 
             conversationHistory = [];
             document.getElementById('chatMessages').innerHTML = '';
-            addMessage('system', `✅ Configuration updated to ${ENVIRONMENTS[env].name}. Ready to chat!`);
+            addMessage('system', `✅ Configuration updated to ${ENVIRONMENTS[env].name} - ${deploymentLabel}. Ready to chat!`);
         }
 
         function updateUIWithConfig() {
