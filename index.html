@@ -21,16 +21,96 @@
             padding: 20px;
         }
 
+        .main-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .app-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #718096;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .about-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .about-section h3 {
+            color: #2d3748;
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+
+        .feature-list {
+            text-align: left;
+            color: #718096;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .feature-list li {
+            margin-bottom: 8px;
+        }
+
+        /* Chat Container (Hidden initially) */
         .chat-container {
+            display: none;
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             width: 100%;
             max-width: 800px;
             height: 90vh;
-            display: flex;
             flex-direction: column;
             overflow: hidden;
+        }
+
+        .chat-container.active {
+            display: flex;
         }
 
         .chat-header {
@@ -45,6 +125,8 @@
         .chat-header h1 {
             font-size: 24px;
             font-weight: 600;
+            color: white;
+            margin: 0;
         }
 
         .header-buttons {
@@ -293,98 +375,6 @@
             margin-top: 20px;
         }
 
-        /* Login Screen */
-        .login-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .login-screen.hidden {
-            display: none;
-        }
-
-        .login-box {
-            background: white;
-            padding: 60px 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            max-width: 400px;
-        }
-
-        .login-box h1 {
-            color: #2d3748;
-            margin-bottom: 10px;
-            font-size: 28px;
-        }
-
-        .login-box p {
-            color: #718096;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-
-        .login-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 16px 32px;
-            font-size: 16px;
-            font-weight: 600;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-        }
-
-        .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .app-icon {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-        }
-
-        .about-section {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #e2e8f0;
-        }
-
-        .about-section h3 {
-            color: #2d3748;
-            font-size: 16px;
-            margin-bottom: 12px;
-        }
-
-        .feature-list {
-            text-align: left;
-            color: #718096;
-            font-size: 13px;
-            line-height: 1.8;
-        }
-
-        .feature-list li {
-            margin-bottom: 8px;
-        }
-
         /* Responsive */
         @media (max-width: 768px) {
             .jwt-sidebar {
@@ -397,45 +387,33 @@
                 height: 100vh;
                 border-radius: 0;
             }
-
-            .header-buttons {
-                flex-direction: column;
-                gap: 5px;
-            }
-
-            .settings-btn, .jwt-toggle-header-btn {
-                font-size: 12px;
-                padding: 6px 12px;
-            }
         }
     </style>
 </head>
 <body>
     <!-- Login Screen -->
-    <div class="login-screen" id="loginScreen">
-        <div class="login-box">
-            <div class="app-icon">🤖</div>
-            <h1>DataRobot AI Assistant</h1>
-            <p>Connect and chat with AI across all environments</p>
-            
-            <button class="login-btn" onclick="loginWithOkta()">
-                🔐 Login with Okta
-            </button>
+    <div class="main-container" id="loginScreen">
+        <div class="app-icon">🤖</div>
+        <h1>DataRobot AI Assistant</h1>
+        <p class="subtitle">Connect and chat with AI across all environments</p>
+        
+        <button class="login-btn" onclick="loginWithOkta()">
+            🔐 Login with Okta
+        </button>
 
-            <div class="about-section">
-                <h3>✨ About this application</h3>
-                <ul class="feature-list">
-                    <li>🔒 Enterprise SSO with OAuth 2.0</li>
-                    <li>⚡ Multi-Environment Support (Staging, EKS, GKE)</li>
-                    <li>💬 Real-time AI Chat powered by DataRobot LLMs</li>
-                    <li>🎯 Secure JWT Token Authentication</li>
-                </ul>
-            </div>
+        <div class="about-section">
+            <h3>✨ About this application</h3>
+            <ul class="feature-list">
+                <li>🔒 Enterprise SSO with OAuth 2.0</li>
+                <li>⚡ Multi-Environment Support (Staging, EKS, GKE)</li>
+                <li>💬 Real-time AI Chat powered by DataRobot LLMs</li>
+                <li>🎯 Secure JWT Token Authentication</li>
+            </ul>
         </div>
     </div>
 
-    <!-- Main Chat Container -->
-    <div class="chat-container">
+    <!-- Chat Container -->
+    <div class="chat-container" id="chatContainer">
         <div class="chat-header">
             <h1>🤖 DataRobot AI Assistant</h1>
             <div class="header-buttons">
@@ -688,9 +666,9 @@
         // ============================================
 
         function loginWithOkta() {
-            // Replace with your actual Okta login URL
+            // TODO: Replace YOUR_ACTUAL_CLIENT_ID with your real Okta client ID
             const oktaLoginUrl = 'https://agents-dell.oktapreview.com/oauth2/default/v1/authorize';
-            const clientId = 'YOUR_CLIENT_ID';
+            const clientId = '0oasm7gb2oAVsX8c81d7';  // ⚠️ REPLACE THIS
             const redirectUri = encodeURIComponent(window.location.origin + '/callback');
             const scope = 'openid profile email';
             
@@ -704,10 +682,14 @@
             const token = sessionStorage.getItem('jwt_token');
             
             if (authenticated && token) {
-                document.getElementById('loginScreen').classList.add('hidden');
+                // Hide login, show chat
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('chatContainer').classList.add('active');
                 return true;
             } else {
-                document.getElementById('loginScreen').classList.remove('hidden');
+                // Show login, hide chat
+                document.getElementById('loginScreen').style.display = 'block';
+                document.getElementById('chatContainer').classList.remove('active');
                 return false;
             }
         }
