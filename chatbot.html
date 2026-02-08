@@ -3,358 +3,1241 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataRobot Chatbot</title>
+    <title>DataRobot AI Assistant</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
         }
-
+        
         .chat-container {
-            width: 90%;
-            max-width: 800px;
+            width: 95%;
+            max-width: 1400px;
             height: 90vh;
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            position: relative;
         }
-
+        
         .chat-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .header-title h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .environment-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .environment-badge.ready {
+            background: rgba(76, 217, 100, 0.3);
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-header {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .btn-header:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        
+        .btn-header.active {
+            background: rgba(255,255,255,0.4);
+            border-color: rgba(255,255,255,0.6);
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+        
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message.user {
+            flex-direction: row-reverse;
+        }
+        
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        
+        .message.bot .message-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .message.user .message-avatar {
+            background: #e9ecef;
+        }
+        
+        .message.error .message-avatar {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .message-content {
+            flex: 1;
+            max-width: 70%;
+        }
+        
+        .message.user .message-content {
+            text-align: right;
+        }
+        
+        .message-bubble {
+            padding: 15px 20px;
+            border-radius: 15px;
+            display: inline-block;
+            max-width: 100%;
+            word-wrap: break-word;
+        }
+        
+        .message.bot .message-bubble {
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .message.error .message-bubble {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .message-time {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .typing-indicator {
+            display: none;
+            padding: 15px 20px;
+            background: white;
+            border-radius: 15px;
+            width: fit-content;
+        }
+        
+        .typing-indicator span {
+            height: 10px;
+            width: 10px;
+            background: #667eea;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+            animation: typing 1.4s infinite;
+        }
+        
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+        
+        .chat-input-container {
+            padding: 20px 30px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .chat-input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        #userInput {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        #userInput:focus {
+            border-color: #667eea;
+        }
+        
+        .btn-send {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        
+        .btn-send:hover {
+            transform: scale(1.05);
+        }
+        
+        .btn-send:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Config Panel Styles */
+        .config-panel {
+            position: fixed;
+            left: -400px;
+            top: 0;
+            width: 400px;
+            height: 100vh;
+            background: white;
+            box-shadow: 2px 0 20px rgba(0,0,0,0.2);
+            transition: left 0.3s;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .config-panel.active {
+            left: 0;
+        }
+        
+        .config-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
             padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .config-content {
+            padding: 20px;
+        }
+        
+        .config-item {
+            margin-bottom: 20px;
+        }
+        
+        .config-item label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .config-item input,
+        .config-item select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .config-item input:focus,
+        .config-item select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .config-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #e9ecef;
+            color: #333;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        /* JWT Sidebar Styles */
+        .jwt-sidebar {
+            position: fixed;
+            right: -450px;
+            top: 0;
+            width: 450px;
+            height: 100vh;
+            background: white;
+            box-shadow: -2px 0 20px rgba(0,0,0,0.2);
+            transition: right 0.3s;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .jwt-sidebar.active {
+            right: 0;
+        }
+        
+        .jwt-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-
-        .chat-header h1 {
-            font-size: 24px;
-            font-weight: 600;
+        
+        .jwt-content {
+            padding: 20px;
         }
-
-        .settings-btn {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .settings-btn:hover {
-            background: rgba(255,255,255,0.3);
-        }
-
-        .settings-panel {
+        
+        .jwt-section {
+            margin-bottom: 25px;
+            padding: 15px;
             background: #f8f9fa;
-            padding: 20px;
-            border-bottom: 1px solid #e0e0e0;
-            display: none;
+            border-radius: 10px;
         }
-
-        .settings-panel.active {
-            display: block;
+        
+        .jwt-section h3 {
+            margin-bottom: 10px;
+            color: #667eea;
+            font-size: 16px;
         }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-            color: #333;
-        }
-
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-
-        .save-btn {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .save-btn:hover {
-            background: #5568d3;
-        }
-
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            background: #f8f9fa;
-        }
-
-        .message {
-            margin-bottom: 15px;
-            padding: 12px 16px;
-            border-radius: 8px;
-            max-width: 70%;
-            word-wrap: break-word;
-        }
-
-        .message.user {
-            background: #667eea;
-            color: white;
-            margin-left: auto;
-            text-align: right;
-        }
-
-        .message.bot {
-            background: white;
-            color: #333;
-            border: 1px solid #e0e0e0;
-        }
-
-        .chat-input {
-            padding: 20px;
-            background: white;
-            border-top: 1px solid #e0e0e0;
-            display: flex;
+        
+        .jwt-info {
+            display: grid;
             gap: 10px;
         }
-
-        .chat-input input {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
+        
+        .jwt-info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
         }
-
-        .chat-input button {
+        
+        .jwt-info-label {
+            font-weight: 600;
+            color: #666;
+        }
+        
+        .jwt-info-value {
+            color: #333;
+            text-align: right;
+        }
+        
+        .jwt-token-status {
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .jwt-token-status.valid {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .jwt-token-status.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .jwt-token-status.expired {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .jwt-groups {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .jwt-group-badge {
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+        
+        .jwt-raw-token {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            word-break: break-all;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .error-message {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .error-message.show {
+            display: block;
+        }
+        
+        .refresh-btn {
             background: #667eea;
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
+            padding: 8px 15px;
+            border-radius: 5px;
             cursor: pointer;
             font-size: 14px;
-            font-weight: 500;
+            margin-top: 10px;
         }
-
-        .chat-input button:hover {
+        
+        .refresh-btn:hover {
             background: #5568d3;
+        }
+        
+        .deployment-selector-wrapper {
+            margin-top: 15px;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
     <div class="chat-container">
+        <!-- Header -->
         <div class="chat-header">
-            <h1>DataRobot AI Assistant</h1>
-            <button class="settings-btn" onclick="toggleSettings()">⚙️ Settings</button>
+            <div class="header-left">
+                <div class="logo">🤖</div>
+                <div class="header-title">
+                    <h1>AI Assistant</h1>
+                    <div class="environment-badge" id="envBadge">
+                        <span id="envName">Staging Environment</span>
+                        <span id="envStatus">⚙️</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn-header" id="btnJWT">🔐 JWT Info</button>
+                <button class="btn-header" id="btnSettings">⚙️ Settings</button>
+                <button class="btn-header" id="btnLogout">🚪 Logout</button>
+            </div>
         </div>
         
-        <div id="settingsPanel" class="settings-panel">
-            <h3>Configuration</h3>
-            
-            <div class="form-group">
-                <label>API Gateway URL:</label>
-                <input type="text" id="apiGateway" placeholder="https://your-lambda-url.execute-api.us-east-1.amazonaws.com/api">
+        <!-- Chat Messages -->
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot">
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        👋 Hello! I'm your DataRobot AI Assistant. How can I help you today?
+                    </div>
+                    <div class="message-time" id="welcomeTime"></div>
+                </div>
             </div>
-            
-            <div class="form-group">
-                <label>Environment:</label>
-                <select id="environment" onchange="updateBaseUrl()">
+            <div class="typing-indicator" id="typingIndicator">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        
+        <!-- Chat Input -->
+        <div class="chat-input-container">
+            <div class="chat-input-wrapper">
+                <input 
+                    type="text" 
+                    id="userInput" 
+                    placeholder="Type your message here..."
+                    onkeypress="handleKeyPress(event)"
+                >
+                <button class="btn-send" id="sendBtn" onclick="sendMessage()">
+                    📤 Send
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Config Panel -->
+    <div class="config-panel" id="configPanel">
+        <div class="config-header">
+            <h2>⚙️ Configuration</h2>
+        </div>
+        <div class="config-content">
+            <div class="config-item">
+                <label>Environment</label>
+                <select id="envSelect" onchange="updateEnvironment()">
                     <option value="staging">Staging</option>
-                    <option value="eks">EKS</option>
-                    <option value="gke">GKE</option>
+                    <option value="eks">EKS Regression</option>
+                    <option value="gke">GKE Regression</option>
                 </select>
             </div>
             
-            <div class="form-group">
-                <label>DataRobot Base URL:</label>
-                <input type="text" id="baseUrl" value="https://staging.datarobot.com" readonly>
+            <div class="config-item">
+                <label>DataRobot API Key (Temporary)</label>
+                <input 
+                    type="password" 
+                    id="apiKeyInput" 
+                    placeholder="Enter your DataRobot API key"
+                >
+                <small style="color: #6c757d; display: block; margin-top: 5px;">
+                    ℹ️ Temporary workaround until JWT-based listing is available
+                </small>
             </div>
             
-            <div class="form-group">
-                <label>Deployment ID:</label>
-                <input type="text" id="deploymentId" placeholder="Enter deployment ID">
+            <div class="config-item">
+                <label>DataRobot Base URL</label>
+                <input 
+                    type="text" 
+                    id="baseUrlInput" 
+                    placeholder="https://staging.datarobot.com"
+                    readonly
+                >
             </div>
             
-            <button onclick="saveSettings()" class="save-btn">Save Settings</button>
-        </div>
-        
-        <div class="chat-messages" id="chatMessages">
-            <div class="message bot">
-                Hello! I'm your DataRobot AI assistant. How can I help you today?
+            <div class="config-item">
+                <label>API Gateway URL</label>
+                <input 
+                    type="text" 
+                    id="gatewayInput" 
+                    placeholder="https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api"
+                >
+                <small style="color: #6c757d; display: block; margin-top: 5px;">
+                    ℹ️ Your AWS Lambda API Gateway endpoint URL
+                </small>
             </div>
-        </div>
-        
-        <div class="chat-input">
-            <input type="text" id="messageInput" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
-            <button onclick="sendMessage()">Send</button>
+            
+            <div class="config-item">
+                <label>Select Deployment</label>
+                <div class="deployment-selector-wrapper">
+                    <select id="deploymentSelect">
+                        <option value="">-- Select a deployment --</option>
+                    </select>
+                    <button class="refresh-btn" onclick="fetchDeployments()">
+                        🔄 Refresh List
+                    </button>
+                    <div class="error-message" id="deploymentError"></div>
+                </div>
+            </div>
+            
+            <div class="config-actions">
+                <button class="btn btn-secondary" onclick="toggleConfig()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveConfig()">💾 Apply Configuration</button>
+            </div>
         </div>
     </div>
-
+    
+    <!-- JWT Sidebar -->
+    <div class="jwt-sidebar" id="jwtSidebar">
+        <div class="jwt-header">
+            <h2>🔐 JWT Token Details</h2>
+            <button class="btn-header" onclick="toggleJWT()" style="padding: 5px 10px;">✕</button>
+        </div>
+        <div class="jwt-content" id="jwtContent">
+            <!-- JWT info will be inserted here -->
+        </div>
+    </div>
+    
     <script>
         // Configuration
-        let currentConfig = {
-            apiGateway: '',
-            environment: 'staging',
-            baseUrl: 'https://staging.datarobot.com',
-            deploymentId: ''
+        const ENVIRONMENTS = {
+            staging: {
+                name: 'Staging',
+                baseUrl: 'https://staging.datarobot.com',
+                deploymentId: '',
+                apiGateway: 'https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api',
+                apiKey: ''
+            },
+            eks: {
+                name: 'EKS Regression',
+                baseUrl: 'https://dr-app-charts-master-daily.eks.delivery.drdev.io',
+                deploymentId: '',
+                apiGateway: 'https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api',
+                apiKey: ''
+            },
+            gke: {
+                name: 'GKE Regression',
+                baseUrl: 'https://dr-app-charts-master-daily.gke.delivery.drdev.io',
+                deploymentId: '',
+                apiGateway: 'https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api',
+                apiKey: ''
+            }
         };
         
-        const envUrls = {
-            'staging': 'https://staging.datarobot.com',
-            'eks': 'https://eks-endpoint.datarobot.com',
-            'gke': 'https://gke-endpoint.datarobot.com'
-        };
+        let currentConfig = { ...ENVIRONMENTS.staging };
+        let jwtRefreshInterval;
         
-        // Check authentication on load
-        window.addEventListener('DOMContentLoaded', function() {
+        // Initialize
+        document.addEventListener('DOMContentLoaded', init);
+        
+        function init() {
+            // Check authentication
             const accessToken = sessionStorage.getItem('access_token');
             if (!accessToken) {
                 window.location.href = 'index.html';
                 return;
             }
             
-            loadSettings();
-        });
-        
-        function toggleSettings() {
-            const panel = document.getElementById('settingsPanel');
-            panel.classList.toggle('active');
-        }
-        
-        function updateBaseUrl() {
-            const env = document.getElementById('environment').value;
-            const baseUrl = envUrls[env];
-            document.getElementById('baseUrl').value = baseUrl;
-        }
-        
-        function saveSettings() {
-            currentConfig.apiGateway = document.getElementById('apiGateway').value.trim();
-            currentConfig.environment = document.getElementById('environment').value;
-            currentConfig.baseUrl = document.getElementById('baseUrl').value.trim();
-            currentConfig.deploymentId = document.getElementById('deploymentId').value.trim();
+            // Load saved config
+            loadConfig();
             
-            localStorage.setItem('chatbotConfig', JSON.stringify(currentConfig));
+            // Update welcome time
+            document.getElementById('welcomeTime').textContent = new Date().toLocaleTimeString();
             
-            alert('Settings saved!');
-            toggleSettings();
+            // Start JWT monitoring
+            updateJWTDisplay();
+            jwtRefreshInterval = setInterval(updateJWTDisplay, 30000); // Update every 30 seconds
+            
+            // Try to fetch deployments if API key is available
+            if (currentConfig.apiKey) {
+                fetchDeployments();
+            }
         }
         
-        function loadSettings() {
-            const saved = localStorage.getItem('chatbotConfig');
+        function loadConfig() {
+            const saved = localStorage.getItem('chatbot_config');
             if (saved) {
                 try {
-                    const config = JSON.parse(saved);
-                    currentConfig = { ...currentConfig, ...config };
-                    
-                    document.getElementById('apiGateway').value = currentConfig.apiGateway;
-                    document.getElementById('environment').value = currentConfig.environment;
-                    document.getElementById('baseUrl').value = currentConfig.baseUrl;
-                    document.getElementById('deploymentId').value = currentConfig.deploymentId;
+                    currentConfig = JSON.parse(saved);
+                    updateUIFromConfig();
                 } catch (e) {
-                    console.error('Error loading settings:', e);
+                    console.error('Failed to load config:', e);
                 }
             }
         }
         
+        function updateUIFromConfig() {
+            document.getElementById('baseUrlInput').value = currentConfig.baseUrl;
+            document.getElementById('gatewayInput').value = currentConfig.apiGateway || '';
+            document.getElementById('apiKeyInput').value = currentConfig.apiKey || '';
+            
+            // Update environment badge
+            const badge = document.getElementById('envBadge');
+            const envName = document.getElementById('envName');
+            envName.textContent = `${currentConfig.name} Environment`;
+            
+            if (currentConfig.deploymentId) {
+                badge.classList.add('ready');
+                document.getElementById('envStatus').textContent = '✓ Ready';
+            } else {
+                badge.classList.remove('ready');
+                document.getElementById('envStatus').textContent = '⚙️';
+            }
+        }
+        
+        function updateEnvironment() {
+            const select = document.getElementById('envSelect');
+            const env = select.value;
+            const baseConfig = ENVIRONMENTS[env];
+            
+            currentConfig = {
+                ...baseConfig,
+                apiGateway: currentConfig.apiGateway, // Preserve gateway
+                apiKey: currentConfig.apiKey // Preserve API key
+            };
+            
+            updateUIFromConfig();
+        }
+        
+        async function fetchDeployments() {
+            console.log('🔄 Fetching deployments...');
+            
+            const apiKeyInput = document.getElementById('apiKeyInput').value.trim();
+            const gatewayInput = document.getElementById('gatewayInput').value.trim();
+            const accessToken = sessionStorage.getItem('access_token');
+            const errorDiv = document.getElementById('deploymentError');
+            const refreshBtn = document.querySelector('.refresh-btn');
+            
+            // Update current config with form values
+            const apiKey = apiKeyInput || currentConfig.apiKey;
+            const gateway = gatewayInput || currentConfig.apiGateway;
+            
+            // Clear previous errors
+            errorDiv.textContent = '';
+            errorDiv.classList.remove('show');
+            errorDiv.style.color = '#dc3545';
+            
+            console.log('Auth available:', { hasToken: !!accessToken, hasApiKey: !!apiKey });
+            console.log('Gateway URL:', gateway);
+            console.log('DataRobot URL:', currentConfig.baseUrl);
+            
+            // Validate inputs
+            if (!apiKey && !accessToken) {
+                errorDiv.textContent = '❌ Please provide an API Key or ensure you\'re logged in with JWT';
+                errorDiv.classList.add('show');
+                console.error('No authentication available');
+                return;
+            }
+            
+            if (!gateway) {
+                errorDiv.textContent = '❌ Please enter API Gateway URL first (e.g., https://xxxxx.execute-api.us-east-1.amazonaws.com/api)';
+                errorDiv.classList.add('show');
+                console.error('No API Gateway URL configured');
+                return;
+            }
+            
+            // Show loading
+            refreshBtn.disabled = true;
+            refreshBtn.innerHTML = '⏳ Loading...';
+            
+            try {
+                const requestBody = {
+                    action: 'list_deployments',
+                    datarobotUrl: currentConfig.baseUrl,
+                    limit: 100,
+                    offset: 0
+                };
+                
+                // Add authentication
+                if (accessToken) {
+                    requestBody.accessToken = accessToken;
+                    console.log('Using JWT token authentication');
+                } else if (apiKey) {
+                    requestBody.apiKey = apiKey;
+                    console.log('Using API key authentication');
+                }
+                
+                console.log('Making request to Lambda:', gateway);
+                console.log('Request payload:', { ...requestBody, accessToken: accessToken ? '[REDACTED]' : undefined, apiKey: apiKey ? '[REDACTED]' : undefined });
+                
+                const response = await fetch(gateway, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+                
+                const responseText = await response.text();
+                console.log('Response body (raw):', responseText);
+                
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('Failed to parse response as JSON:', parseError);
+                    throw new Error(`Invalid JSON response: ${responseText.substring(0, 200)}`);
+                }
+                
+                if (!response.ok) {
+                    throw new Error(data.message || data.error || `HTTP ${response.status}`);
+                }
+                
+                console.log('✅ Deployments fetched successfully:', data);
+                
+                if (data.success && data.deployments && Array.isArray(data.deployments)) {
+                    populateDeploymentSelector(data.deployments);
+                    errorDiv.textContent = `✅ Found ${data.count} deployment(s)`;
+                    errorDiv.style.color = '#28a745';
+                    errorDiv.classList.add('show');
+                    
+                    // Save API key to config if it was just entered
+                    if (apiKeyInput) {
+                        currentConfig.apiKey = apiKeyInput;
+                    }
+                } else {
+                    console.error('Unexpected response format:', data);
+                    throw new Error('Invalid response format: missing deployments array');
+                }
+                
+            } catch (error) {
+                console.error('❌ Failed to fetch deployments:', error);
+                errorDiv.textContent = `❌ Error: ${error.message}`;
+                errorDiv.classList.add('show');
+                
+                // Provide helpful debugging info
+                console.error('Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    gateway: gateway,
+                    hasAuth: !!(accessToken || apiKey)
+                });
+            } finally {
+                refreshBtn.disabled = false;
+                refreshBtn.innerHTML = '🔄 Refresh List';
+            }
+        }
+        
+        function populateDeploymentSelector(deployments) {
+            const select = document.getElementById('deploymentSelect');
+            
+            // Clear existing options
+            select.innerHTML = '<option value="">-- Select a deployment --</option>';
+            
+            // Add deployments
+            deployments.forEach(deployment => {
+                const option = document.createElement('option');
+                option.value = deployment.id;
+                option.textContent = `${deployment.name} (${deployment.target.name})`;
+                
+                // Pre-select if it matches current config
+                if (deployment.id === currentConfig.deploymentId) {
+                    option.selected = true;
+                }
+                
+                select.appendChild(option);
+            });
+            
+            console.log(`✅ Populated ${deployments.length} deployments`);
+        }
+        
+        function saveConfig() {
+            const gateway = document.getElementById('gatewayInput').value.trim();
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            const deploymentId = document.getElementById('deploymentSelect').value;
+            
+            // Update config
+            currentConfig.apiGateway = gateway;
+            currentConfig.apiKey = apiKey;
+            currentConfig.deploymentId = deploymentId;
+            
+            // Validate
+            if (!currentConfig.apiGateway) {
+                alert('⚠️ Please provide an API Gateway URL.\n\nYour Lambda URL should look like:\nhttps://xxxxx.execute-api.us-east-1.amazonaws.com/api');
+                return;
+            }
+            
+            if (!currentConfig.apiKey) {
+                const proceed = confirm('⚠️ No API Key provided.\n\nYou can either:\n1. Provide an API key to list deployments\n2. Manually enter a deployment ID later\n\nProceed without API key?');
+                if (!proceed) return;
+            }
+            
+            if (!currentConfig.deploymentId) {
+                alert('⚠️ Please select a deployment.\n\nClick "Refresh List" to load available deployments, or save this configuration and manually enter a deployment ID later.');
+                return;
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('chatbot_config', JSON.stringify(currentConfig));
+            
+            // Update UI
+            updateUIFromConfig();
+            toggleConfig();
+            
+            const selectedOption = document.getElementById('deploymentSelect').selectedOptions[0];
+            const deploymentName = selectedOption ? selectedOption.text : currentConfig.deploymentId;
+            
+            addMessage('bot', `✅ Configuration saved!\n\n📍 Environment: ${currentConfig.name}\n🎯 Deployment: ${deploymentName}\n🔗 Gateway: ${currentConfig.apiGateway}`);
+        }
+        
+        function toggleConfig() {
+            const panel = document.getElementById('configPanel');
+            const btn = document.getElementById('btnSettings');
+            
+            if (panel.classList.contains('active')) {
+                panel.classList.remove('active');
+                btn.classList.remove('active');
+            } else {
+                panel.classList.add('active');
+                btn.classList.add('active');
+                
+                // Populate fields from current config
+                document.getElementById('baseUrlInput').value = currentConfig.baseUrl;
+                document.getElementById('gatewayInput').value = currentConfig.apiGateway || '';
+                document.getElementById('apiKeyInput').value = currentConfig.apiKey || '';
+                
+                // Find and select the current environment
+                const envSelect = document.getElementById('envSelect');
+                for (const [key, env] of Object.entries(ENVIRONMENTS)) {
+                    if (env.baseUrl === currentConfig.baseUrl) {
+                        envSelect.value = key;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        function toggleJWT() {
+            const sidebar = document.getElementById('jwtSidebar');
+            const btn = document.getElementById('btnJWT');
+            
+            if (sidebar.classList.contains('active')) {
+                sidebar.classList.remove('active');
+                btn.classList.remove('active');
+            } else {
+                sidebar.classList.add('active');
+                btn.classList.add('active');
+                updateJWTDisplay();
+            }
+        }
+        
+        function updateJWTDisplay() {
+            const accessToken = sessionStorage.getItem('access_token');
+            const container = document.getElementById('jwtContent');
+            
+            if (!accessToken) {
+                container.innerHTML = `
+                    <div class="jwt-token-status expired">
+                        ❌ No JWT Token Found
+                    </div>
+                    <p style="text-align: center; color: #666;">Please log in to view token details.</p>
+                `;
+                return;
+            }
+            
+            try {
+                // Decode JWT
+                const parts = accessToken.split('.');
+                if (parts.length !== 3) {
+                    throw new Error('Invalid JWT format');
+                }
+                
+                const payload = JSON.parse(atob(parts[1]));
+                const header = JSON.parse(atob(parts[0]));
+                
+                // Calculate expiry
+                const now = Math.floor(Date.now() / 1000);
+                const expiresAt = payload.exp;
+                const timeLeft = expiresAt - now;
+                const minutesLeft = Math.floor(timeLeft / 60);
+                
+                // Determine status
+                let status = 'valid';
+                let statusText = '✅ Valid';
+                if (timeLeft < 0) {
+                    status = 'expired';
+                    statusText = '❌ Expired';
+                } else if (timeLeft < 300) {
+                    status = 'warning';
+                    statusText = '⚠️ Expiring Soon';
+                }
+                
+                // Build HTML
+                container.innerHTML = `
+                    <div class="jwt-token-status ${status}">
+                        ${statusText}
+                    </div>
+                    
+                    <div class="jwt-section">
+                        <h3>📊 Token Statistics</h3>
+                        <div class="jwt-info">
+                            <div class="jwt-info-item">
+                                <span class="jwt-info-label">Token Length:</span>
+                                <span class="jwt-info-value">${accessToken.length} characters</span>
+                            </div>
+                            <div class="jwt-info-item">
+                                <span class="jwt-info-label">Parts:</span>
+                                <span class="jwt-info-value">${parts.length} (Header.Payload.Signature)</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="jwt-section">
+                        <h3>⏰ Expiration</h3>
+                        <div class="jwt-info">
+                            <div class="jwt-info-item">
+                                <span class="jwt-info-label">Expires At:</span>
+                                <span class="jwt-info-value">${new Date(expiresAt * 1000).toLocaleString()}</span>
+                            </div>
+                            <div class="jwt-info-item">
+                                <span class="jwt-info-label">Time Remaining:</span>
+                                <span class="jwt-info-value">${timeLeft > 0 ? `${minutesLeft} minutes` : 'Expired'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="jwt-section">
+                        <h3>👤 User Information</h3>
+                        <div class="jwt-info">
+                            <div class="jwt-info-item">
+                                <span class="jwt-info-label">Name:</span>
+                                <span class="jwt-info-value">${payload.name || 'N/A'}</span>
+                            </div>
+                            <div class="jwt-info-item">
+                                <span class="jwt-info-label">Email:</span>
+                                <span class="jwt-info-value">${payload.email || 'N/A'}</span>
+                            </div>
+                            <div class="jwt-info-item">
+                                <span class="jwt-info-label">Organization:</span>
+                                <span class="jwt-info-value">${payload.datarobotOrgId || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="jwt-section">
+                        <h3>🔐 Token Details</h3>
+                        <div class="jwt-info">
+                            <div class="jwt-info-item">
+                                <span class="jwt-info-label">Issuer:</span>
+                                <span class="jwt-info-value">${payload.iss || 'N/A'}</span>
+                            </div>
+                            <div class="jwt-info-item">
+                                <span class="jwt-info-label">Audience:</span>
+                                <span class="jwt-info-value">${payload.aud || 'N/A'}</span>
+                            </div>
+                            <div class="jwt-info-item">
+                                <span class="jwt-info-label">Subject:</span>
+                                <span class="jwt-info-value">${payload.sub || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${payload.groups && payload.groups.length > 0 ? `
+                        <div class="jwt-section">
+                            <h3>👥 Groups</h3>
+                            <div class="jwt-groups">
+                                ${payload.groups.map(group => `<span class="jwt-group-badge">${group}</span>`).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    ${payload.scp && payload.scp.length > 0 ? `
+                        <div class="jwt-section">
+                            <h3>🔑 Scopes</h3>
+                            <div class="jwt-info-value">${payload.scp.join(', ')}</div>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="jwt-section">
+                        <h3>📄 Raw Token</h3>
+                        <div class="jwt-raw-token">${accessToken}</div>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('Failed to decode JWT:', error);
+                container.innerHTML = `
+                    <div class="jwt-token-status expired">
+                        ❌ Invalid Token
+                    </div>
+                    <p style="text-align: center; color: #666;">Failed to decode JWT token.</p>
+                `;
+            }
+        }
+        
         function handleKeyPress(event) {
-            if (event.key === 'Enter') {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
                 sendMessage();
             }
         }
         
         async function sendMessage() {
-            const input = document.getElementById('messageInput');
+            const input = document.getElementById('userInput');
             const message = input.value.trim();
             
             if (!message) return;
             
             // Validate configuration
-            if (!currentConfig.apiGateway) {
-                alert('Please configure API Gateway URL in settings');
-                toggleSettings();
-                return;
-            }
-            
             if (!currentConfig.deploymentId) {
-                alert('Please configure Deployment ID in settings');
-                toggleSettings();
+                addMessage('error', '❌ Please configure a deployment in Settings first!');
                 return;
             }
             
-            // Add user message to chat
+            if (!currentConfig.apiGateway) {
+                addMessage('error', '❌ Please configure API Gateway URL in Settings first!');
+                return;
+            }
+            
+            // Add user message
             addMessage('user', message);
             input.value = '';
             
-            // Get access token
-            const accessToken = sessionStorage.getItem('access_token');
+            // Show typing indicator
+            showTyping();
             
             try {
-                // Call DataRobot API through Lambda
+                const accessToken = sessionStorage.getItem('access_token');
+                
+                console.log('Sending message to Lambda:', {
+                    gateway: currentConfig.apiGateway,
+                    deployment: currentConfig.deploymentId,
+                    baseUrl: currentConfig.baseUrl
+                });
+                
                 const response = await fetch(currentConfig.apiGateway, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        action: 'chat',
                         accessToken: accessToken,
                         datarobotUrl: currentConfig.baseUrl,
-                        endpoint: `/deployments/${currentConfig.deploymentId}/predictions`,
-                        method: 'POST',
-                        payload: {
-                            data: [{ text: message }]
-                        }
+                        deploymentId: currentConfig.deploymentId,
+                        messages: [
+                            { role: 'user', content: message }
+                        ]
                     })
                 });
                 
-                const data = await response.json();
-                
-                if (data.success && data.data) {
-                    // Extract prediction from response
-                    const prediction = data.data.predictions?.[0] || 'No response';
-                    addMessage('bot', prediction);
-                } else {
-                    addMessage('bot', 'Sorry, I encountered an error: ' + (data.error || 'Unknown error'));
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `HTTP ${response.status}`);
                 }
+                
+                const data = await response.json();
+                console.log('Response received:', data);
+                
+                const botMessage = data.choices[0].message.content;
+                addMessage('bot', botMessage);
                 
             } catch (error) {
                 console.error('Error:', error);
-                addMessage('bot', 'Sorry, I encountered an error. Please try again.');
+                addMessage('error', `❌ Error: ${error.message}`);
+            } finally {
+                hideTyping();
             }
         }
         
-        function addMessage(sender, text) {
-            const messagesDiv = document.getElementById('chatMessages');
+        function addMessage(type, text) {
+            const container = document.getElementById('chatMessages');
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}`;
-            messageDiv.textContent = text;
-            messagesDiv.appendChild(messageDiv);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            messageDiv.className = `message ${type}`;
+            
+            const avatar = type === 'user' ? '👤' : (type === 'error' ? '⚠️' : '🤖');
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${avatar}</div>
+                <div class="message-content">
+                    <div class="message-bubble">${text}</div>
+                    <div class="message-time">${new Date().toLocaleTimeString()}</div>
+                </div>
+            `;
+            
+            container.insertBefore(messageDiv, document.getElementById('typingIndicator'));
+            container.scrollTop = container.scrollHeight;
         }
+        
+        function showTyping() {
+            document.getElementById('typingIndicator').style.display = 'block';
+            document.getElementById('sendBtn').disabled = true;
+        }
+        
+        function hideTyping() {
+            document.getElementById('typingIndicator').style.display = 'none';
+            document.getElementById('sendBtn').disabled = false;
+        }
+        
+        // Logout
+        document.getElementById('btnLogout').addEventListener('click', () => {
+            if (confirm('Are you sure you want to logout?')) {
+                sessionStorage.clear();
+                localStorage.removeItem('chatbot_config');
+                window.location.href = 'index.html';
+            }
+        });
+        
+        // Event listeners
+        document.getElementById('btnSettings').addEventListener('click', toggleConfig);
+        document.getElementById('btnJWT').addEventListener('click', toggleJWT);
     </script>
 </body>
 </html>
