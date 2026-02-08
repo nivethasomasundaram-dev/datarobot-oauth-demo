@@ -832,27 +832,34 @@
         }
         
         function populateDeploymentSelector(deployments) {
-            const select = document.getElementById('deploymentSelect');
-            
-            // Clear existing options
-            select.innerHTML = '<option value="">-- Select a deployment --</option>';
-            
-            // Add deployments
-            deployments.forEach(deployment => {
-                const option = document.createElement('option');
-                option.value = deployment.id;
-                option.textContent = `${deployment.label} (${deployment.defaultPredictionServer.url})`;
-                
-                // Pre-select if it matches current config
-                if (deployment.id === currentConfig.deploymentId) {
-                    option.selected = true;
-                }
-                
-                select.appendChild(option);
-            });
-            
-            console.log(`✅ Populated ${deployments.length} deployments`);
+    const select = document.getElementById('deploymentSelect');
+    
+    // Clear existing options
+    select.innerHTML = '<option value="">-- Select a deployment --</option>';
+    
+    // Add deployments
+    deployments.forEach(deployment => {
+        const option = document.createElement('option');
+        option.value = deployment.id;
+        
+        // Handle different possible field names safely
+        const deploymentName = deployment.label || deployment.name || deployment.id;
+        const serverUrl = deployment.defaultPredictionServer?.url || 
+                         deployment.defaultPredictionServerId || 
+                         'Unknown Server';
+        
+        option.textContent = `${deploymentName} (${serverUrl})`;
+        
+        // Pre-select if it matches current config
+        if (deployment.id === currentConfig.deploymentId) {
+            option.selected = true;
         }
+        
+        select.appendChild(option);
+    });
+    
+    console.log(`✅ Populated ${deployments.length} deployments`);
+}
         
         function saveConfig() {
             const gateway = document.getElementById('gatewayInput').value.trim();
