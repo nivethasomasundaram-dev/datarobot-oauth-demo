@@ -589,18 +589,6 @@
             </div>
             
             <div class="config-item">
-                <label>DataRobot API Key (Temporary)</label>
-                <input 
-                    type="password" 
-                    id="apiKeyInput" 
-                    placeholder="Enter your DataRobot API key"
-                >
-                <small style="color: #6c757d; display: block; margin-top: 5px;">
-                    ℹ️ Temporary workaround until JWT-based listing is available
-                </small>
-            </div>
-            
-            <div class="config-item">
                 <label>DataRobot Base URL</label>
                 <input 
                     type="text" 
@@ -660,22 +648,19 @@
                 name: 'Staging',
                 baseUrl: 'https://staging.datarobot.com',
                 deploymentId: '',
-                apiGateway: 'https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api',
-                apiKey: ''
+                apiGateway: 'https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api'
             },
             eks: {
                 name: 'EKS Regression',
                 baseUrl: 'https://dr-app-charts-master-daily.eks.delivery.drdev.io',
                 deploymentId: '',
-                apiGateway: 'https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api',
-                apiKey: ''
+                apiGateway: 'https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api'
             },
             gke: {
                 name: 'GKE Regression',
                 baseUrl: 'https://dr-app-charts-master-daily.gke.delivery.drdev.io',
                 deploymentId: '',
-                apiGateway: 'https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api',
-                apiKey: ''
+                apiGateway: 'https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api'
             }
         };
         
@@ -702,11 +687,6 @@
             // Start JWT monitoring
             updateJWTDisplay();
             jwtRefreshInterval = setInterval(updateJWTDisplay, 30000); // Update every 30 seconds
-            
-            // Try to fetch deployments if API key is available
-            if (currentConfig.apiKey) {
-                fetchDeployments();
-            }
         }
         
         function loadConfig() {
@@ -724,7 +704,6 @@
         function updateUIFromConfig() {
             document.getElementById('baseUrlInput').value = currentConfig.baseUrl;
             document.getElementById('gatewayInput').value = currentConfig.apiGateway || '';
-            document.getElementById('apiKeyInput').value = currentConfig.apiKey || '';
             
             // Update environment badge
             const badge = document.getElementById('envBadge');
@@ -747,8 +726,7 @@
             
             currentConfig = {
                 ...baseConfig,
-                apiGateway: currentConfig.apiGateway, // Preserve gateway
-                apiKey: currentConfig.apiKey // Preserve API key
+                apiGateway: currentConfig.apiGateway // Preserve gateway
             };
             
             updateUIFromConfig();
@@ -757,14 +735,12 @@
         async function fetchDeployments() {
             console.log('🔄 Fetching deployments...');
             
-            const apiKeyInput = document.getElementById('apiKeyInput').value.trim();
             const gatewayInput = document.getElementById('gatewayInput').value.trim();
             const accessToken = sessionStorage.getItem('access_token');
             const errorDiv = document.getElementById('deploymentError');
             const refreshBtn = document.querySelector('.refresh-btn');
             
             // Update current config with form values
-            const apiKey = apiKeyInput || currentConfig.apiKey;
             const gateway = gatewayInput || currentConfig.apiGateway;
             
             // Clear previous errors
@@ -772,20 +748,20 @@
             errorDiv.classList.remove('show');
             errorDiv.style.color = '#dc3545';
             
-            console.log('Auth available:', { hasToken: !!accessToken, hasApiKey: !!apiKey });
+            console.log('Auth available:', { hasToken: !!accessToken });
             console.log('Gateway URL:', gateway);
             console.log('DataRobot URL:', currentConfig.baseUrl);
             
             // Validate inputs
-            if (!apiKey && !accessToken) {
-                errorDiv.textContent = '❌ Please provide an API Key or ensure you\'re logged in with JWT';
+            if (!accessToken) {
+                errorDiv.textContent = '❌ Please log in first to fetch deployments';
                 errorDiv.classList.add('show');
-                console.error('No authentication available');
+                console.error('No JWT token available');
                 return;
             }
             
             if (!gateway) {
-                errorDiv.textContent = '❌ Please enter API Gateway URL first (e.g., https://xxxxx.execute-api.us-east-1.amazonaws.com/api)';
+                errorDiv.textContent = '❌ Please enter API Gateway URL first';
                 errorDiv.classList.add('show');
                 console.error('No API Gateway URL configured');
                 return;
@@ -796,24 +772,16 @@
             refreshBtn.innerHTML = '⏳ Loading...';
             
             try {
+                // FIXED: Use endpoint parameter instead of action
                 const requestBody = {
-                    action: 'list_deployments',
+                    accessToken: accessToken,
                     datarobotUrl: currentConfig.baseUrl,
-                    limit: 100,
-                    offset: 0
+                    endpoint: '/api/v2/deployments/',
+                    method: 'GET'
                 };
                 
-                // Add authentication
-                if (accessToken) {
-                    requestBody.accessToken = accessToken;
-                    console.log('Using JWT token authentication');
-                } else if (apiKey) {
-                    requestBody.apiKey = apiKey;
-                    console.log('Using API key authentication');
-                }
-                
                 console.log('Making request to Lambda:', gateway);
-                console.log('Request payload:', { ...requestBody, accessToken: accessToken ? '[REDACTED]' : undefined, apiKey: apiKey ? '[REDACTED]' : undefined });
+                console.log('Request payload:', { ...requestBody, accessToken: '[REDACTED]' });
                 
                 const response = await fetch(gateway, {
                     method: 'POST',
@@ -824,7 +792,6 @@
                 });
                 
                 console.log('Response status:', response.status);
-                console.log('Response headers:', Object.fromEntries(response.headers.entries()));
                 
                 const responseText = await response.text();
                 console.log('Response body (raw):', responseText);
@@ -843,33 +810,21 @@
                 
                 console.log('✅ Deployments fetched successfully:', data);
                 
-                if (data.success && data.deployments && Array.isArray(data.deployments)) {
-                    populateDeploymentSelector(data.deployments);
-                    errorDiv.textContent = `✅ Found ${data.count} deployment(s)`;
+                // FIXED: Parse the DataRobot API response (data.data is the array)
+                if (data.data && Array.isArray(data.data)) {
+                    populateDeploymentSelector(data.data);
+                    errorDiv.textContent = `✅ Found ${data.count || data.data.length} deployment(s)`;
                     errorDiv.style.color = '#28a745';
                     errorDiv.classList.add('show');
-                    
-                    // Save API key to config if it was just entered
-                    if (apiKeyInput) {
-                        currentConfig.apiKey = apiKeyInput;
-                    }
                 } else {
                     console.error('Unexpected response format:', data);
-                    throw new Error('Invalid response format: missing deployments array');
+                    throw new Error('Invalid response format: missing data array');
                 }
                 
             } catch (error) {
                 console.error('❌ Failed to fetch deployments:', error);
                 errorDiv.textContent = `❌ Error: ${error.message}`;
                 errorDiv.classList.add('show');
-                
-                // Provide helpful debugging info
-                console.error('Error details:', {
-                    message: error.message,
-                    stack: error.stack,
-                    gateway: gateway,
-                    hasAuth: !!(accessToken || apiKey)
-                });
             } finally {
                 refreshBtn.disabled = false;
                 refreshBtn.innerHTML = '🔄 Refresh List';
@@ -886,7 +841,7 @@
             deployments.forEach(deployment => {
                 const option = document.createElement('option');
                 option.value = deployment.id;
-                option.textContent = `${deployment.name} (${deployment.target.name})`;
+                option.textContent = `${deployment.label} (${deployment.defaultPredictionServer.url})`;
                 
                 // Pre-select if it matches current config
                 if (deployment.id === currentConfig.deploymentId) {
@@ -901,12 +856,10 @@
         
         function saveConfig() {
             const gateway = document.getElementById('gatewayInput').value.trim();
-            const apiKey = document.getElementById('apiKeyInput').value.trim();
             const deploymentId = document.getElementById('deploymentSelect').value;
             
             // Update config
             currentConfig.apiGateway = gateway;
-            currentConfig.apiKey = apiKey;
             currentConfig.deploymentId = deploymentId;
             
             // Validate
@@ -915,13 +868,8 @@
                 return;
             }
             
-            if (!currentConfig.apiKey) {
-                const proceed = confirm('⚠️ No API Key provided.\n\nYou can either:\n1. Provide an API key to list deployments\n2. Manually enter a deployment ID later\n\nProceed without API key?');
-                if (!proceed) return;
-            }
-            
             if (!currentConfig.deploymentId) {
-                alert('⚠️ Please select a deployment.\n\nClick "Refresh List" to load available deployments, or save this configuration and manually enter a deployment ID later.');
+                alert('⚠️ Please select a deployment.\n\nClick "Refresh List" to load available deployments.');
                 return;
             }
             
@@ -952,7 +900,6 @@
                 // Populate fields from current config
                 document.getElementById('baseUrlInput').value = currentConfig.baseUrl;
                 document.getElementById('gatewayInput').value = currentConfig.apiGateway || '';
-                document.getElementById('apiKeyInput').value = currentConfig.apiKey || '';
                 
                 // Find and select the current environment
                 const envSelect = document.getElementById('envSelect');
@@ -1019,225 +966,224 @@
                     status = 'warning';
                     statusText = '⚠️ Expiring Soon';
                 }
-                
                 // Build HTML
-                container.innerHTML = `
-                    <div class="jwt-token-status ${status}">
-                        ${statusText}
+            container.innerHTML = `
+                <div class="jwt-token-status ${status}">
+                    ${statusText}
+                </div>
+                
+                <div class="jwt-section">
+                    <h3>📊 Token Statistics</h3>
+                    <div class="jwt-info">
+                        <div class="jwt-info-item">
+                            <span class="jwt-info-label">Token Length:</span>
+                            <span class="jwt-info-value">${accessToken.length} characters</span>
+                        </div>
+                        <div class="jwt-info-item">
+                            <span class="jwt-info-label">Parts:</span>
+                            <span class="jwt-info-value">${parts.length} (Header.Payload.Signature)</span>
+                        </div>
                     </div>
-                    
+                </div>
+                
+                <div class="jwt-section">
+                    <h3>⏰ Expiration</h3>
+                    <div class="jwt-info">
+                        <div class="jwt-info-item">
+                            <span class="jwt-info-label">Expires At:</span>
+                            <span class="jwt-info-value">${new Date(expiresAt * 1000).toLocaleString()}</span>
+                        </div>
+                        <div class="jwt-info-item">
+                            <span class="jwt-info-label">Time Remaining:</span>
+                            <span class="jwt-info-value">${timeLeft > 0 ? `${minutesLeft} minutes` : 'Expired'}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="jwt-section">
+                    <h3>👤 User Information</h3>
+                    <div class="jwt-info">
+                        <div class="jwt-info-item">
+                            <span class="jwt-info-label">Name:</span>
+                            <span class="jwt-info-value">${payload.name || 'N/A'}</span>
+                        </div>
+                        <div class="jwt-info-item">
+                            <span class="jwt-info-label">Email:</span>
+                            <span class="jwt-info-value">${payload.email || 'N/A'}</span>
+                        </div>
+                        <div class="jwt-info-item">
+                            <span class="jwt-info-label">Organization:</span>
+                            <span class="jwt-info-value">${payload.datarobotOrgId || 'N/A'}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="jwt-section">
+                    <h3>🔐 Token Details</h3>
+                    <div class="jwt-info">
+                        <div class="jwt-info-item">
+                            <span class="jwt-info-label">Issuer:</span>
+                            <span class="jwt-info-value">${payload.iss || 'N/A'}</span>
+                        </div>
+                        <div class="jwt-info-item">
+                            <span class="jwt-info-label">Audience:</span>
+                            <span class="jwt-info-value">${payload.aud || 'N/A'}</span>
+                        </div>
+                        <div class="jwt-info-item">
+                            <span class="jwt-info-label">Subject:</span>
+                            <span class="jwt-info-value">${payload.sub || 'N/A'}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                ${payload.groups && payload.groups.length > 0 ? `
                     <div class="jwt-section">
-                        <h3>📊 Token Statistics</h3>
-                        <div class="jwt-info">
-                            <div class="jwt-info-item">
-                                <span class="jwt-info-label">Token Length:</span>
-                                <span class="jwt-info-value">${accessToken.length} characters</span>
-                            </div>
-                            <div class="jwt-info-item">
-                                <span class="jwt-info-label">Parts:</span>
-                                <span class="jwt-info-value">${parts.length} (Header.Payload.Signature)</span>
-                            </div>
+                        <h3>👥 Groups</h3>
+                        <div class="jwt-groups">
+                            ${payload.groups.map(group => `<span class="jwt-group-badge">${group}</span>`).join('')}
                         </div>
                     </div>
-                    
+                ` : ''}
+                
+                ${payload.scp && payload.scp.length > 0 ? `
                     <div class="jwt-section">
-                        <h3>⏰ Expiration</h3>
-                        <div class="jwt-info">
-                            <div class="jwt-info-item">
-                                <span class="jwt-info-label">Expires At:</span>
-                                <span class="jwt-info-value">${new Date(expiresAt * 1000).toLocaleString()}</span>
-                            </div>
-                            <div class="jwt-info-item">
-                                <span class="jwt-info-label">Time Remaining:</span>
-                                <span class="jwt-info-value">${timeLeft > 0 ? `${minutesLeft} minutes` : 'Expired'}</span>
-                            </div>
-                        </div>
+                        <h3>🔑 Scopes</h3>
+                        <div class="jwt-info-value">${payload.scp.join(', ')}</div>
                     </div>
-                    
-                    <div class="jwt-section">
-                        <h3>👤 User Information</h3>
-                        <div class="jwt-info">
-                            <div class="jwt-info-item">
-                                <span class="jwt-info-label">Name:</span>
-                                <span class="jwt-info-value">${payload.name || 'N/A'}</span>
-                            </div>
-                            <div class="jwt-info-item">
-                                <span class="jwt-info-label">Email:</span>
-                                <span class="jwt-info-value">${payload.email || 'N/A'}</span>
-                            </div>
-                            <div class="jwt-info-item">
-                                <span class="jwt-info-label">Organization:</span>
-                                <span class="jwt-info-value">${payload.datarobotOrgId || 'N/A'}</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="jwt-section">
-                        <h3>🔐 Token Details</h3>
-                        <div class="jwt-info">
-                            <div class="jwt-info-item">
-                                <span class="jwt-info-label">Issuer:</span>
-                                <span class="jwt-info-value">${payload.iss || 'N/A'}</span>
-                            </div>
-                            <div class="jwt-info-item">
-                                <span class="jwt-info-label">Audience:</span>
-                                <span class="jwt-info-value">${payload.aud || 'N/A'}</span>
-                            </div>
-                            <div class="jwt-info-item">
-                                <span class="jwt-info-label">Subject:</span>
-                                <span class="jwt-info-value">${payload.sub || 'N/A'}</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    ${payload.groups && payload.groups.length > 0 ? `
-                        <div class="jwt-section">
-                            <h3>👥 Groups</h3>
-                            <div class="jwt-groups">
-                                ${payload.groups.map(group => `<span class="jwt-group-badge">${group}</span>`).join('')}
-                            </div>
-                        </div>
-                    ` : ''}
-                    
-                    ${payload.scp && payload.scp.length > 0 ? `
-                        <div class="jwt-section">
-                            <h3>🔑 Scopes</h3>
-                            <div class="jwt-info-value">${payload.scp.join(', ')}</div>
-                        </div>
-                    ` : ''}
-                    
-                    <div class="jwt-section">
-                        <h3>📄 Raw Token</h3>
-                        <div class="jwt-raw-token">${accessToken}</div>
-                    </div>
-                `;
+                ` : ''}
                 
-            } catch (error) {
-                console.error('Failed to decode JWT:', error);
-                container.innerHTML = `
-                    <div class="jwt-token-status expired">
-                        ❌ Invalid Token
-                    </div>
-                    <p style="text-align: center; color: #666;">Failed to decode JWT token.</p>
-                `;
-            }
-        }
-        
-        function handleKeyPress(event) {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                sendMessage();
-            }
-        }
-        
-        async function sendMessage() {
-            const input = document.getElementById('userInput');
-            const message = input.value.trim();
-            
-            if (!message) return;
-            
-            // Validate configuration
-            if (!currentConfig.deploymentId) {
-                addMessage('error', '❌ Please configure a deployment in Settings first!');
-                return;
-            }
-            
-            if (!currentConfig.apiGateway) {
-                addMessage('error', '❌ Please configure API Gateway URL in Settings first!');
-                return;
-            }
-            
-            // Add user message
-            addMessage('user', message);
-            input.value = '';
-            
-            // Show typing indicator
-            showTyping();
-            
-            try {
-                const accessToken = sessionStorage.getItem('access_token');
-                
-                console.log('Sending message to Lambda:', {
-                    gateway: currentConfig.apiGateway,
-                    deployment: currentConfig.deploymentId,
-                    baseUrl: currentConfig.baseUrl
-                });
-                
-                const response = await fetch(currentConfig.apiGateway, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        accessToken: accessToken,
-                        datarobotUrl: currentConfig.baseUrl,
-                        deploymentId: currentConfig.deploymentId,
-                        messages: [
-                            { role: 'user', content: message }
-                        ]
-                    })
-                });
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || `HTTP ${response.status}`);
-                }
-                
-                const data = await response.json();
-                console.log('Response received:', data);
-                
-                const botMessage = data.choices[0].message.content;
-                addMessage('bot', botMessage);
-                
-            } catch (error) {
-                console.error('Error:', error);
-                addMessage('error', `❌ Error: ${error.message}`);
-            } finally {
-                hideTyping();
-            }
-        }
-        
-        function addMessage(type, text) {
-            const container = document.getElementById('chatMessages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${type}`;
-            
-            const avatar = type === 'user' ? '👤' : (type === 'error' ? '⚠️' : '🤖');
-            
-            messageDiv.innerHTML = `
-                <div class="message-avatar">${avatar}</div>
-                <div class="message-content">
-                    <div class="message-bubble">${text}</div>
-                    <div class="message-time">${new Date().toLocaleTimeString()}</div>
+                <div class="jwt-section">
+                    <h3>📄 Raw Token</h3>
+                    <div class="jwt-raw-token">${accessToken}</div>
                 </div>
             `;
             
-            container.insertBefore(messageDiv, document.getElementById('typingIndicator'));
-            container.scrollTop = container.scrollHeight;
+        } catch (error) {
+            console.error('Failed to decode JWT:', error);
+            container.innerHTML = `
+                <div class="jwt-token-status expired">
+                    ❌ Invalid Token
+                </div>
+                <p style="text-align: center; color: #666;">Failed to decode JWT token.</p>
+            `;
+        }
+    }
+    
+    function handleKeyPress(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            sendMessage();
+        }
+    }
+    
+    async function sendMessage() {
+        const input = document.getElementById('userInput');
+        const message = input.value.trim();
+        
+        if (!message) return;
+        
+        // Validate configuration
+        if (!currentConfig.deploymentId) {
+            addMessage('error', '❌ Please configure a deployment in Settings first!');
+            return;
         }
         
-        function showTyping() {
-            document.getElementById('typingIndicator').style.display = 'block';
-            document.getElementById('sendBtn').disabled = true;
+        if (!currentConfig.apiGateway) {
+            addMessage('error', '❌ Please configure API Gateway URL in Settings first!');
+            return;
         }
         
-        function hideTyping() {
-            document.getElementById('typingIndicator').style.display = 'none';
-            document.getElementById('sendBtn').disabled = false;
-        }
+        // Add user message
+        addMessage('user', message);
+        input.value = '';
         
-        // Logout
-        document.getElementById('btnLogout').addEventListener('click', () => {
-            if (confirm('Are you sure you want to logout?')) {
-                sessionStorage.clear();
-                localStorage.removeItem('chatbot_config');
-                window.location.href = 'index.html';
+        // Show typing indicator
+        showTyping();
+        
+        try {
+            const accessToken = sessionStorage.getItem('access_token');
+            
+            console.log('Sending message to Lambda:', {
+                gateway: currentConfig.apiGateway,
+                deployment: currentConfig.deploymentId,
+                baseUrl: currentConfig.baseUrl
+            });
+            
+            const response = await fetch(currentConfig.apiGateway, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    accessToken: accessToken,
+                    datarobotUrl: currentConfig.baseUrl,
+                    deploymentId: currentConfig.deploymentId,
+                    messages: [
+                        { role: 'user', content: message }
+                    ]
+                })
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `HTTP ${response.status}`);
             }
-        });
+            
+            const data = await response.json();
+            console.log('Response received:', data);
+            
+            const botMessage = data.choices[0].message.content;
+            addMessage('bot', botMessage);
+            
+        } catch (error) {
+            console.error('Error:', error);
+            addMessage('error', `❌ Error: ${error.message}`);
+        } finally {
+            hideTyping();
+        }
+    }
+    
+    function addMessage(type, text) {
+        const container = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}`;
         
-        // Event listeners
-        document.getElementById('btnSettings').addEventListener('click', toggleConfig);
-        document.getElementById('btnJWT').addEventListener('click', toggleJWT);
-    </script>
+        const avatar = type === 'user' ? '👤' : (type === 'error' ? '⚠️' : '🤖');
+        
+        messageDiv.innerHTML = `
+            <div class="message-avatar">${avatar}</div>
+            <div class="message-content">
+                <div class="message-bubble">${text}</div>
+                <div class="message-time">${new Date().toLocaleTimeString()}</div>
+            </div>
+        `;
+        
+        container.insertBefore(messageDiv, document.getElementById('typingIndicator'));
+        container.scrollTop = container.scrollHeight;
+    }
+    
+    function showTyping() {
+        document.getElementById('typingIndicator').style.display = 'block';
+        document.getElementById('sendBtn').disabled = true;
+    }
+    
+    function hideTyping() {
+        document.getElementById('typingIndicator').style.display = 'none';
+        document.getElementById('sendBtn').disabled = false;
+    }
+    
+    // Logout
+    document.getElementById('btnLogout').addEventListener('click', () => {
+        if (confirm('Are you sure you want to logout?')) {
+            sessionStorage.clear();
+            localStorage.removeItem('chatbot_config');
+            window.location.href = 'index.html';
+        }
+    });
+    
+    // Event listeners
+    document.getElementById('btnSettings').addEventListener('click', toggleConfig);
+    document.getElementById('btnJWT').addEventListener('click', toggleJWT);
+</script>
 </body>
 </html>
