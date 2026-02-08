@@ -3,185 +3,283 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Authentication - DataRobot Chatbot</title>
+    <title>Authentication Successful</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            padding: 20px;
         }
-        
-        .callback-container {
+
+        .container {
             background: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 60px 40px;
+            max-width: 500px;
+            width: 100%;
             text-align: center;
-            max-width: 400px;
+            animation: slideUp 0.5s ease;
         }
-        
-        .error-box {
-            background-color: #fee;
-            border: 1px solid #fcc;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            color: #c33;
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        
+
         .success-icon {
             width: 80px;
             height: 80px;
-            background: #667eea;
+            margin: 0 auto 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 50%;
-            margin: 0 auto 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 40px;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        .success-icon::after {
+            content: '✓';
+            font-size: 48px;
             color: white;
+            font-weight: bold;
         }
-        
-        .loading {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+        h1 {
+            color: #2d3748;
+            font-size: 32px;
+            margin-bottom: 15px;
+            font-weight: 700;
         }
-        
+
+        .message {
+            color: #718096;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 40px;
+        }
+
         .continue-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 12px 30px;
-            font-size: 16px;
-            border-radius: 6px;
+            padding: 16px 48px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 12px;
             cursor: pointer;
-            margin-top: 20px;
-            text-decoration: none;
-            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
-        
+
         .continue-btn:hover {
-            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .continue-btn:active {
+            transform: translateY(0);
+        }
+
+        .continue-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            color: #718096;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(102, 126, 234, 0.3);
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #fff5f5;
+            border: 1px solid #feb2b2;
+            color: #c53030;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
         }
     </style>
 </head>
 <body>
-    <div class="callback-container">
-        <div id="errorBox" class="error-box" style="display: none;"></div>
+    <div class="container">
+        <div class="error-message" id="errorMessage"></div>
         
-        <div id="loadingState">
-            <div class="loading"></div>
-            <p>Completing authentication...</p>
-        </div>
-        
-        <div id="successState" style="display: none;">
-            <div class="success-icon">✓</div>
-            <h2>Authentication Successful!</h2>
-            <p>You've been successfully authenticated.</p>
-            <p>You're all set to start chatting with the AI assistant.</p>
-            <a href="chatbot.html" class="continue-btn">🚀 Continue to Chatbot</a>
+        <div class="success-icon"></div>
+        <h1>Authentication Successful!</h1>
+        <p class="message">
+            You've been successfully authenticated.<br>
+            You're all set to start chatting with the AI assistant.
+        </p>
+        <button class="continue-btn" id="continueBtn" onclick="continueToChat()">
+            🚀 Continue to Chatbot
+        </button>
+        <div class="loading" id="loadingIndicator">
+            <span class="spinner"></span>
+            Processing...
         </div>
     </div>
 
     <script>
-        // Configuration - MUST MATCH YOUR index.html
-        const config = {
-            lambdaUrl: 'https://cotmuqxk67.execute-api.us-east-1.amazonaws.com/api',
-            clientId: '0oauvfydktwmfZGqL1d7',
-            redirectUri: window.location.origin + '/callback.html',
-            tokenUrl: 'https://datastores.okta.com/oauth2/ausa9w0j3cWDDiJqJ1d7/v1/token'
-        };
-
-        console.log('=== Callback Page Loaded ===');
-
-        // Extract code from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
-        const error = urlParams.get('error');
-
-        if (error) {
-            showError('Authentication failed: ' + error);
-        } else if (!code) {
-            showError('No authorization code received');
-        } else {
-            exchangeToken(code);
-        }
-
-        async function exchangeToken(code) {
-            console.log('🔄 Starting token exchange...');
-            
+        async function handleCallback() {
             try {
-                const requestBody = {
-                    action: 'exchange_token',
-                    code: code,
-                    redirect_uri: config.redirectUri,
-                    client_id: config.clientId,
-                    token_url: config.tokenUrl
-                };
-                
-                console.log('📤 Sending to Lambda');
+                const urlParams = new URLSearchParams(window.location.search);
+                const code = urlParams.get('code');
+                const state = urlParams.get('state');
+                const error = urlParams.get('error');
 
-                const response = await fetch(config.lambdaUrl, {
+                if (error) {
+                    throw new Error(`OAuth error: ${error}`);
+                }
+
+                if (!code) {
+                    throw new Error('No authorization code received');
+                }
+
+                const savedState = sessionStorage.getItem('oauth_state');
+                if (state !== savedState) {
+                    throw new Error('State validation failed');
+                }
+
+                const config = JSON.parse(sessionStorage.getItem('chatbot_config'));
+                const authProvider = sessionStorage.getItem('auth_provider') || 'okta';
+                const tokenEndpoint = `https://${config.authDomain}${config.tokenEndpoint}`;
+
+                // Exchange code for token via Lambda
+                const tokenResponse = await fetch(config.apiGateway, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(requestBody)
+                    body: JSON.stringify({
+                        grant_type: 'authorization_code',
+                        code: code,
+                        redirect_uri: config.redirectUri,
+                        client_id: config.clientId,
+                        client_secret: config.clientSecret,
+                        token_endpoint: tokenEndpoint,
+                        auth_provider: authProvider
+                    })
                 });
 
-                const data = await response.json();
-
-                if (!response.ok || !data.success) {
-                    throw new Error(data.error || 'Token exchange failed');
+                if (!tokenResponse.ok) {
+                    const errorData = await tokenResponse.json();
+                    throw new Error(`Token exchange failed: ${errorData.message || errorData.error}`);
                 }
 
-                // Store tokens
-                const tokens = data.tokens;
-                sessionStorage.setItem('access_token', tokens.access_token);
-                sessionStorage.setItem('id_token', tokens.id_token);
-                sessionStorage.setItem('token_expiry', Date.now() + (tokens.expires_in * 1000));
+                const tokenData = await tokenResponse.json();
+                const accessToken = tokenData.access_token;
 
-                if (tokens.refresh_token) {
-                    sessionStorage.setItem('refresh_token', tokens.refresh_token);
+                // Decode JWT
+                function decodeJWT(token) {
+                    try {
+                        const base64Url = token.split('.')[1];
+                        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                        }).join(''));
+                        return JSON.parse(jsonPayload);
+                    } catch (e) {
+                        return null;
+                    }
                 }
 
-                console.log('✅ Tokens stored');
+                const decodedToken = decodeJWT(accessToken);
+                if (!decodedToken) {
+                    throw new Error('Failed to decode JWT token');
+                }
 
-                // Show success
-                document.getElementById('loadingState').style.display = 'none';
-                document.getElementById('successState').style.display = 'block';
+                // Store in session
+                sessionStorage.setItem('access_token', accessToken);
+                sessionStorage.setItem('token_expires_at', decodedToken.exp * 1000);
+                sessionStorage.setItem('user_email', decodedToken.email || 'N/A');
+                
+                const firstName = decodedToken.firstName || decodedToken.given_name || '';
+                const lastName = decodedToken.lastName || decodedToken.family_name || '';
+                sessionStorage.setItem('user_name', `${firstName} ${lastName}`.trim() || 'User');
+                
+                sessionStorage.setItem('datarobot_org_id', decodedToken.datarobotOrgId || 'N/A');
+                sessionStorage.setItem('user_groups', JSON.stringify(decodedToken.groups || []));
 
-                // Auto-redirect after 2 seconds
-                setTimeout(() => {
-                    window.location.href = 'chatbot.html';
-                }, 2000);
+                console.log('✓ Authentication Complete!');
 
             } catch (error) {
-                console.error('❌ Error:', error);
-                showError('Token exchange failed: ' + error.message);
+                console.error('Authentication Failed:', error);
+                const errorDiv = document.getElementById('errorMessage');
+                errorDiv.textContent = `Error: ${error.message}`;
+                errorDiv.classList.add('show');
+                
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 5000);
             }
         }
 
-        function showError(message) {
-            document.getElementById('loadingState').style.display = 'none';
-            const errorBox = document.getElementById('errorBox');
-            errorBox.textContent = 'Error: ' + message;
-            errorBox.style.display = 'block';
+        function continueToChat() {
+            document.getElementById('loadingIndicator').classList.add('show');
+            document.getElementById('continueBtn').disabled = true;
+            
+            setTimeout(() => {
+                window.location.href = 'chatbot.html';
+            }, 500);
         }
+
+        handleCallback();
     </script>
 </body>
 </html>
