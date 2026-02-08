@@ -107,15 +107,11 @@
         };
 
         console.log('=== Callback Page Loaded ===');
-        console.log('Config:', config);
 
         // Extract code from URL
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
-        const state = urlParams.get('state');
         const error = urlParams.get('error');
-
-        console.log('URL Params:', { code: code?.substring(0, 20) + '...', state, error });
 
         if (error) {
             showError('Authentication failed: ' + error);
@@ -130,17 +126,14 @@
             
             try {
                 const requestBody = {
-                    action: 'exchange_token',  // CRITICAL: This tells Lambda what to do
+                    action: 'exchange_token',
                     code: code,
                     redirect_uri: config.redirectUri,
                     client_id: config.clientId,
                     token_url: config.tokenUrl
                 };
                 
-                console.log('📤 Sending to Lambda:', {
-                    url: config.lambdaUrl,
-                    body: { ...requestBody, code: requestBody.code.substring(0, 20) + '...' }
-                });
+                console.log('📤 Sending to Lambda');
 
                 const response = await fetch(config.lambdaUrl, {
                     method: 'POST',
@@ -150,35 +143,14 @@
                     body: JSON.stringify(requestBody)
                 });
 
-                console.log('📥 Lambda response status:', response.status);
-                
-                const responseText = await response.text();
-                console.log('📥 Lambda response body:', responseText);
+                const data = await response.json();
 
-                let data;
-                try {
-                    data = JSON.parse(responseText);
-                } catch (e) {
-                    console.error('Failed to parse response:', e);
-                    throw new Error('Invalid response from server: ' + responseText);
-                }
-
-                if (!response.ok) {
-                    throw new Error(data.error || `Server error: ${response.status}`);
-                }
-
-                if (!data.success) {
+                if (!response.ok || !data.success) {
                     throw new Error(data.error || 'Token exchange failed');
                 }
 
                 // Store tokens
                 const tokens = data.tokens;
-                console.log('✅ Tokens received:', {
-                    access_token: tokens.access_token?.substring(0, 20) + '...',
-                    expires_in: tokens.expires_in,
-                    token_type: tokens.token_type
-                });
-
                 sessionStorage.setItem('access_token', tokens.access_token);
                 sessionStorage.setItem('id_token', tokens.id_token);
                 sessionStorage.setItem('token_expiry', Date.now() + (tokens.expires_in * 1000));
@@ -187,7 +159,7 @@
                     sessionStorage.setItem('refresh_token', tokens.refresh_token);
                 }
 
-                console.log('✅ Tokens stored in sessionStorage');
+                console.log('✅ Tokens stored');
 
                 // Show success
                 document.getElementById('loadingState').style.display = 'none';
@@ -199,16 +171,13 @@
                 }, 2000);
 
             } catch (error) {
-                console.error('❌ Token exchange error:', error);
+                console.error('❌ Error:', error);
                 showError('Token exchange failed: ' + error.message);
             }
         }
 
         function showError(message) {
-            console.error('Error:', message);
             document.getElementById('loadingState').style.display = 'none';
-            document.getElementById('successState').style.display = 'none';
-            
             const errorBox = document.getElementById('errorBox');
             errorBox.textContent = 'Error: ' + message;
             errorBox.style.display = 'block';
